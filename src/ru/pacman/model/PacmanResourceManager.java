@@ -1,6 +1,8 @@
 package ru.pacman.model;
 
 import ru.pacman.model.gamelevel.GameLevel;
+import ru.pacman.model.gamelevel.LevelFileFormatException;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -18,7 +20,7 @@ class PacmanResourceManager {
         }
     }
 
-    public void loadLevel(String levelName) { currentLevel = new GameLevel(levelName); }
+    public void loadLevel(String levelName) throws LevelFileFormatException { currentLevel = new GameLevel(levelName); }
     public void handleSoundEvent(String event) { gameFX.handleEvent(event); }
     GameLevel getCurrentLevel() { return currentLevel; }
     List<Point2D<Integer>> getSpecialIntersectionsList() { return currentLevel.getSpecialIntersectionsList(); }

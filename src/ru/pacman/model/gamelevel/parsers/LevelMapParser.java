@@ -1,6 +1,6 @@
 package ru.pacman.model.gamelevel.parsers;
 
-import java.io.UnsupportedEncodingException;
+import ru.pacman.model.gamelevel.LevelFileFormatException;
 
 class LevelMapParser implements LevelParser {
     private final int headerOffset = 5;

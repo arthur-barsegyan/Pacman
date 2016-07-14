@@ -2,9 +2,11 @@ package ru.pacman.model;
 
 import ru.pacman.model.ai.*;
 import ru.pacman.model.gamelevel.GameLevel;
+import ru.pacman.model.gamelevel.LevelFileFormatException;
 import ru.pacman.ui.Ghost;
 
 import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -62,10 +64,10 @@ public class GameModel {
         RIGHT
     }
 
-    /* This constructor receive file name which contains list with
+    /* This constructor receive file which contains list with
        game levels file names. This method loading first level
        from this list. */
-    public GameModel(String _levelNameList) {
+    public GameModel(String _levelNameList) throws LevelFileFormatException, IOException {
         try {
             levelNameList = Files.readAllLines(Paths.get(_levelNameList));
             resources = new PacmanResourceManager();
@@ -81,15 +83,17 @@ public class GameModel {
 
             dotsMaxCounter = getPrimaryDotsCount();
             levelNumber++;
-        } catch (Exception a) {
-
+        } catch (LevelFileFormatException err) {
+            throw err;
+        } catch (IOException err) {
+            throw err;
         }
     }
 
     /* TODO: It's normal practise? */
     public void gameStart() {
         //resources.handleSoundEvent("gamestart");
-        resources.handleSoundEvent("chasemode");
+        //resources.handleSoundEvent("chasemode");
     }
 
     public int getObjectSize() { return objectSize; }
@@ -185,8 +189,7 @@ public class GameModel {
     }
 
     public boolean isLevelOver() {
-        /* TODO: Why I should check ghostAttack flag? */
-        if (getDotsCounter() == getMaxDotsCount() && !ghostAttack)
+        if (getDotsCounter() == getMaxDotsCount())
             levelOver = true;
 
         return levelOver;
@@ -202,7 +205,12 @@ public class GameModel {
             return false;
         }
 
-        resources.loadLevel(levelNameList.get(levelNumber));
+        try {
+            resources.loadLevel(levelNameList.get(levelNumber));
+        } catch (LevelFileFormatException err) {
+            return false;
+        }
+
         return true;
     }
 
@@ -340,7 +348,7 @@ public class GameModel {
 
     private void gameOver() {
         if (ghostAttack) {
-            resources.handleSoundEvent("gameover");
+            //resources.handleSoundEvent("gameover");
         }
 
         gameOver = true;

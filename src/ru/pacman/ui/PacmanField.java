@@ -44,9 +44,9 @@ public class PacmanField extends JComponent {
             if ((char)level[i] == GameLevel.WALL)
                 objectList.add(new PacmanWall(x, y));
             else if ((char)level[i] == GameLevel.SIMPLEDOT)
-                objectList.add(new SimpleDot(x, y));
-            else {
-                objectList.add(new SimpleDot(x,y));
+                objectList.add(new Dot(x, y, false));
+            else if ((char)level[i] == GameLevel.SUPERDOT) {
+                objectList.add(new Dot(x,y, true));
             }
         }
     }
@@ -55,9 +55,9 @@ public class PacmanField extends JComponent {
         for (int i = 0; i < objectList.size(); i++) {
             PacmanLevelObject currentObject = objectList.get(i);
 
-            if (currentObject instanceof SimpleDot) {
+            if (currentObject instanceof Dot) {
                 if ((char)level[i] == GameLevel.ROAD) {
-                    ((SimpleDot) currentObject).deactivate();
+                    ((Dot) currentObject).deactivate();
                 }
             }
         }

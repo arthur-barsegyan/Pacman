@@ -1,7 +1,5 @@
 package ru.pacman.model.gamelevel;
 
-class LevelFileFormatException extends RuntimeException {
-    public LevelFileFormatException(String message) {
-        super(message);
-    }
+public class LevelFileFormatException extends Exception {
+    public LevelFileFormatException(String message) { super(message); }
 }

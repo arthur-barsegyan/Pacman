@@ -7,10 +7,7 @@ import ru.pacman.ui.PacmanGameView;
 
 import javax.swing.*;
 import javax.tools.JavaCompiler;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.util.ArrayList;
 
 public class GameController implements PacmanGameController {
@@ -66,21 +63,13 @@ public class GameController implements PacmanGameController {
 
     /* This tracker will speak to model about Pacman actions,
        and model will analyse this data. */
-    /* TODO: I should create a KeyListenerAdapter */
-    public class MoveTracker implements KeyListener {
+    public class MoveTracker extends KeyAdapter {
         private GameModel model;
         private PacmanGameView view;
 
         MoveTracker(GameModel _model, PacmanGameView _view) {
             model = _model;
             view = _view;
-        }
-
-        /* TODO: Add more comfortable moving for pacman */
-        /* This method get data from the keyboard which he can analyse */
-        @Override
-        public void keyTyped(KeyEvent e) {
-
         }
 
         @Override
@@ -99,11 +88,6 @@ public class GameController implements PacmanGameController {
                     model.changePacmanOrientation(GameModel.Orientation.DOWN);
                     break;
             }
-        }
-
-        @Override
-        public void keyReleased(KeyEvent e) {
-
         }
     }
 }

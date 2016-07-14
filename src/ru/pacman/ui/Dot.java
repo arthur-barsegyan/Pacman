@@ -27,8 +27,12 @@ public class Dot extends JComponent implements PacmanLevelObject {
 
         if (isActive) {
             g.setColor(Color.white);
-            g.fillOval(xPos + size.width / 2, yPos + size.height / 2, size.width / 3, size.height / 3);
+
+            if (isSuperDot)
+                /* TODO: Make it more pretty */
+                g.fillOval(xPos + size.width / 2, yPos + size.height / 2, size.width / 2, size.height / 2);
+            else
+                g.fillOval(xPos + size.width / 3, yPos + size.height / 3, size.width / 3, size.height / 3);
         }
     }
-}
 }
