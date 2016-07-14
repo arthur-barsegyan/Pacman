@@ -1,4 +1,4 @@
-package ru.pacman.model.gamelevel.parsers;
+package ru.pacman.model.gamelevel;
 
 class LevelFileFormatException extends RuntimeException {
     public LevelFileFormatException(String message) {
