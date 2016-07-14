@@ -1,0 +1,3 @@
+gamestart=resources/SFX/Pacman Opening Song.wav
+simpledot=resources/SFX/pacman_chomp.wav
+chasemode=resources/SFX/Pacman Siren.wav
