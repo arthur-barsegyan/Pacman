@@ -1,5 +1,6 @@
 package ru.pacman.model;
 
+import javafx.util.Pair;
 import ru.pacman.model.ai.*;
 import ru.pacman.model.gamelevel.GameLevel;
 import ru.pacman.model.gamelevel.LevelFileFormatException;
@@ -12,9 +13,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.Math.min;
 import static ru.pacman.model.GameModel.MoveRules.LeftUpRule;
 import static ru.pacman.model.GameModel.MoveRules.RightDownRule;
 
+/* TODO: Refactor this class */
 public class GameModel {
     public static final int GAMESTART = 1;
     public static final int GAMEEND = 2;
@@ -44,8 +47,10 @@ public class GameModel {
     private int dotsMaxCounter;
 
     private final static int SIMPLEDOT_BONUS = 10;
+    private final static int SUPERDOT_BONUS = 100;
     private final static int ENEMY_BONUS = 200;
     private final static int objectSize = 10;
+    private boolean afterTeleport = false;
 
     enum Axis {
         X,
@@ -247,6 +252,21 @@ public class GameModel {
         return newPosition;
     }
 
+    /* TODO: Is it a normal practise? */
+    private Pair<Boolean, Point2D<Integer>> isTeleportationPoint(Point2D<Integer> newCoordinates) {
+        List<Pair<Point2D<Integer>, Point2D<Integer>>> teleportationPoints = resources.getTeleportationPoints();
+
+        try {
+            for (Pair<Point2D<Integer>, Point2D<Integer>> currentTeleportationPoint : teleportationPoints) {
+                if (currentTeleportationPoint.getKey().isEquals(newCoordinates)) {
+                    return new Pair<>(true, currentTeleportationPoint.getValue());
+                }
+            }
+        } catch (NullPointerException err) {}
+
+        return new Pair<>(false, null);
+    }
+
     private char getCellType(int x, int y) {
         GameLevel currentLvl = getCurrentLevel();
         byte level[] = currentLvl.getLevelData();
@@ -306,20 +326,36 @@ public class GameModel {
             }
 
             char currentLocation = getCellType(newPosition.x, newPosition.y);
-            if (currentLocation != GameLevel.WALL) {
-                pacmanCoords.setLocation(diff_x, diff_y);
+            if (currentLocation != GameLevel.WALL)
                 return true;
-            }
         }
 
         return false;
+    }
+
+    private MoveRules getRuleByOrientation(Orientation orientation) {
+        switch (orientation) {
+            case UP:
+                return LeftUpRule;
+            case LEFT:
+                return LeftUpRule;
+            case RIGHT:
+                return RightDownRule;
+            case DOWN:
+                return RightDownRule;
+            /* TODO: WTF?! */
+            default:
+                return null;
+        }
     }
 
     private void handleMovementAction(int diff_x, int diff_y, MoveRules rule) {
         boolean newPosState = newPositionChecker(diff_x, diff_y, rule);
 
         if (newPosState) {
+            pacmanCoords.setLocation(diff_x, diff_y);
             Point2D<Integer> newPosition = getNewPosition(diff_x, diff_y, rule);
+
             char newCellType = getCellType(newPosition.x, newPosition.y);
 
             switch (newCellType) {
@@ -331,9 +367,53 @@ public class GameModel {
                     //resources.handleSoundEvent("simpledot");
                     setCellType(newPosition.x, newPosition.y, GameLevel.ROAD);
                     break;
+                case GameLevel.SUPERDOT:
+                    updateScore(SUPERDOT_BONUS);
+                    // change game mode!
+                    //resources.handleSoundEvent("ghosteaten");
+                    setCellType(newPosition.x, newPosition.y, GameLevel.ROAD);
+                    break;
             }
 
+            if (!afterTeleport) {
+                Pair<Boolean, Point2D<Integer>> teleport = isTeleportationPoint(newPosition);
+
+                if (teleport.getKey().booleanValue()) {
+                    Point2D<Integer> newPositionAfterTeleport = teleport.getValue();
+                    Orientation newPacmanOrientation = detectOrientationByTeleportExit(newPositionAfterTeleport);
+                    afterTeleport = true;
+                    handleMovementAction(newPositionAfterTeleport.x * objectSize, newPositionAfterTeleport.y * objectSize,
+                                         getRuleByOrientation(newPacmanOrientation));
+                    changePacmanOrientation(newPacmanOrientation);
+                    return;
+                }
+            }
+
+            afterTeleport = false;
         }
+    }
+
+    private Orientation detectOrientationByTeleportExit(Point2D<Integer> newPositionAfterTeleport) {
+        // get width and height of game area
+        // compare with newPosition coords
+        // and we have 4 cases - our orientation
+        int x = newPositionAfterTeleport.x;
+        int y = newPositionAfterTeleport.y;
+        int fieldWidth = resources.getCurrentLevel().getWidth();
+        int fieldHeight = resources.getCurrentLevel().getHeight();
+
+        if (y == (fieldHeight - 1))
+            return Orientation.UP;
+        else if (x == 0)
+            return Orientation.RIGHT;
+        else if (x == (fieldWidth - 1))
+            return Orientation.LEFT;
+        else if (y == 0)
+            return Orientation.DOWN;
+
+        /* TODO: Handle this */
+        System.out.println("ERRRRRORR!!!");
+        return null;
     }
 
     public void checkGhostsAttack() {
@@ -375,12 +455,6 @@ public class GameModel {
             case DOWN:
                 handleMovementAction(x, y + pacmanSpeed, RightDownRule);
                 break;
-            /*case (GAMESTART):
-                resources.handleSoundEvent("gamestart");
-                break;
-            case (GAMEEND):
-                resources.handleSoundEvent("gameend");
-                break;*/
             default:
                 return;
         }

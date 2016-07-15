@@ -6,12 +6,11 @@ import ru.pacman.model.Point2D;
 import java.util.*;
 
 class PositionsOnMapParser implements LevelParser {
-    private final int headerOffset = 11;
     String heroNameList[] = {"Pacman", "Blinky", "Pinky", "Inky", "Clyde"};
     Map<String, Point2D<Integer>> heroPosList = new HashMap<>();
 
-    public void parse(String levelData, GameLevelBundle levelBundle, int currentIndex) {
-        StringTokenizer posIterator = new StringTokenizer(levelData.substring(currentIndex + headerOffset), "(),=\n ", false);
+    public void parse(String sectionData, GameLevelBundle levelBundle) {
+        StringTokenizer posIterator = new StringTokenizer(sectionData, "(),=\n ", false);
         Point2D currentCoord = new Point2D(0, 0);
         String currentHero = null;
         int characterCounter = 0;

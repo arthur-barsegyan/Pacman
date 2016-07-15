@@ -43,11 +43,12 @@ public class PacmanField extends JComponent {
 
             if ((char)level[i] == GameLevel.WALL)
                 objectList.add(new PacmanWall(x, y));
+            else if((char)level[i] == GameLevel.ROAD)
+                objectList.add(new Road(x, y));
             else if ((char)level[i] == GameLevel.SIMPLEDOT)
                 objectList.add(new Dot(x, y, false));
-            else if ((char)level[i] == GameLevel.SUPERDOT) {
+            else if ((char)level[i] == GameLevel.SUPERDOT)
                 objectList.add(new Dot(x,y, true));
-            }
         }
     }
 

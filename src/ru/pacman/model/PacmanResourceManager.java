@@ -1,5 +1,6 @@
 package ru.pacman.model;
 
+import javafx.util.Pair;
 import ru.pacman.model.gamelevel.GameLevel;
 import ru.pacman.model.gamelevel.LevelFileFormatException;
 
@@ -24,4 +25,7 @@ class PacmanResourceManager {
     public void handleSoundEvent(String event) { gameFX.handleEvent(event); }
     GameLevel getCurrentLevel() { return currentLevel; }
     List<Point2D<Integer>> getSpecialIntersectionsList() { return currentLevel.getSpecialIntersectionsList(); }
+    public List<Pair<Point2D<Integer>,Point2D<Integer>>> getTeleportationPoints() {
+        return currentLevel.getTeleportationPoints();
+    }
 }

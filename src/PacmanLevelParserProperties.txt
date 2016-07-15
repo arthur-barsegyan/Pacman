@@ -2,3 +2,4 @@ map=ru.pacman.model.gamelevel.parsers.LevelMapParser
 superdots=ru.pacman.model.gamelevel.parsers.SuperDotsParser
 start_pos=ru.pacman.model.gamelevel.parsers.PositionsOnMapParser
 nonintersection=ru.pacman.model.gamelevel.parsers.NonIntersectionParser
+teleportation_points=ru.pacman.model.gamelevel.parsers.TeleportationPointsParser

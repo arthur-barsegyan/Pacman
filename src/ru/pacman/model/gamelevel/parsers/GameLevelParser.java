@@ -16,7 +16,7 @@ public class GameLevelParser {
     private java.lang.ClassLoader gameLevelLoader = getClass().getClassLoader();
     private Properties propertiesReader= new Properties();
     private List<String> sectionsHandled = new ArrayList<>();
-    private static String[] importantSections = {"map", "start_pos", "ghost_hotel"};
+    private static String[] importantSections = {"map", "start_pos"};/*, "ghost_hotel"};*/
 
     public GameLevelParser(String levelName) throws IOException {
         gameLevelName = levelName;
@@ -63,7 +63,8 @@ public class GameLevelParser {
                     try {
                         Class newClass = Class.forName(currentParserName);
                         LevelParser newOperator = (LevelParser) newClass.newInstance();
-                        newOperator.parse(gameLevelData, levelBundle, currentIndex);
+                        String sectionData = gameLevelData.substring(currentIndex + currentKey.length() + 2);
+                        newOperator.parse(sectionData, levelBundle);
                         sectionsHandled.add(currentKey);
                     } catch (LevelFileFormatException err) {
                         /* We don't check every unlucky case because we can check important sections

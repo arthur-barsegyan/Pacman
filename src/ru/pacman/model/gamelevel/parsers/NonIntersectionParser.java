@@ -9,10 +9,9 @@ import java.util.StringTokenizer;
 
 
 public class NonIntersectionParser implements LevelParser  {
-    final int offsetToStartsData = 17; // Is it a best practise?
-    public void parse(String levelData, GameLevelBundle levelBundle, int currentIndex) throws LevelFileFormatException {
+    public void parse(String sectionData, GameLevelBundle levelBundle) throws LevelFileFormatException {
         /* Tokenizer created with special flag, which specified current token */
-        StringTokenizer dotsIterator = new StringTokenizer(levelData.substring(currentIndex + offsetToStartsData), "(), \n", false);
+        StringTokenizer dotsIterator = new StringTokenizer(sectionData, "(), \n", false);
         List<Point2D<Integer>> tempCoordinates = new ArrayList<>();
         Point2D<Integer> currentPos = new Point2D<Integer>();
         boolean endOfData = false;
