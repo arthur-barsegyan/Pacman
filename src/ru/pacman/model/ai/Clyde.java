@@ -15,6 +15,7 @@ public class Clyde extends GhostAI {
     Point2D<Integer> currentPosition = null;
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
+    private boolean usingTeleport = false;
 
     public Clyde(GameModel _model) {
         model = _model;
@@ -90,6 +91,16 @@ public class Clyde extends GhostAI {
     void setPreviousPosition() {
         previousPosition.x = currentPosition.x;
         previousPosition.y = currentPosition.y;
+    }
+
+    @Override
+    protected void usingTeleport(boolean state) {
+        usingTeleport = state;
+    }
+
+    @Override
+    protected boolean afterTeleport() {
+        return usingTeleport;
     }
 
     @Override

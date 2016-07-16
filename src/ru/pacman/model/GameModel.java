@@ -253,7 +253,7 @@ public class GameModel {
     }
 
     /* TODO: Is it a normal practise? */
-    private Pair<Boolean, Point2D<Integer>> isTeleportationPoint(Point2D<Integer> newCoordinates) {
+    public Pair<Boolean, Point2D<Integer>> isTeleportationPoint(Point2D<Integer> newCoordinates) {
         List<Pair<Point2D<Integer>, Point2D<Integer>>> teleportationPoints = resources.getTeleportationPoints();
 
         try {

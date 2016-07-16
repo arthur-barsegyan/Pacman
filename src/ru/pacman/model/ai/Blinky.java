@@ -13,6 +13,7 @@ public class Blinky extends GhostAI {
     Point2D<Integer> previousPosition = new Point2D<>();
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
+    private boolean usingTeleport = false;
 
     public Blinky(GameModel _model) {
         model = _model;
@@ -24,9 +25,9 @@ public class Blinky extends GhostAI {
     public void move() {
         boolean moveState = moveAlgo();
 
-        /*if (!moveState)
+        if (!moveState)
             System.out.println("Blinky strategy error!");
-        */model.checkGhostsAttack();
+        model.checkGhostsAttack();
     }
 
     void setPreviousPosition() {
@@ -74,6 +75,16 @@ public class Blinky extends GhostAI {
     @Override
     public void setBlockingOnAxisY(boolean state) {
         blockAxisY = state;
+    }
+
+    @Override
+    protected void usingTeleport(boolean state) {
+        usingTeleport = state;
+    }
+
+    @Override
+    protected boolean afterTeleport() {
+        return usingTeleport;
     }
 
     @Override

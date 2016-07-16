@@ -1,5 +1,6 @@
 package ru.pacman.model.ai;
 
+import javafx.util.Pair;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 
@@ -19,8 +20,28 @@ public abstract class GhostAI {
     abstract public boolean isBlockingOnAxisY();
     abstract public void setBlockingOnAxisX(boolean state);
     abstract public void setBlockingOnAxisY(boolean state);
+    protected abstract void usingTeleport(boolean state);
+    protected abstract boolean afterTeleport();
 
     boolean moveAlgo() {
+        // teleportation point check
+        /* TODO: Refactor this code! */
+        /* TODO: Make special interface for translate from firts type coordinates in second type */
+        /* TODO: Rewrite this method! It looks very ugly! */
+        Point2D<Integer> pos = new Point2D<>(getCurrentCoordinates().x, getCurrentCoordinates().y);
+        pos.x /= 10;
+        pos.y /= 10;
+        Pair<Boolean, Point2D<Integer>> teleport = getGameModel().isTeleportationPoint(pos);
+
+        if (teleport.getKey().booleanValue() && !afterTeleport()) {
+            Point2D<Integer> newPositionAfterTeleport = teleport.getValue();
+            setPreviousPosition();
+            setCurrentPosition(newPositionAfterTeleport.x * 10, newPositionAfterTeleport.y * 10);
+            usingTeleport(true);
+            return true;
+        } else
+            usingTeleport(false);
+
         ArrayList<Point2D<Integer>> pathsList = getGameModel().getPathFromPosition(this);
 
         // Removing our previous path from pathList
