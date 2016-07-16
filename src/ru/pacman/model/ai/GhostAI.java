@@ -1,6 +1,7 @@
 package ru.pacman.model.ai;
 
 import javafx.util.Pair;
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 
@@ -8,10 +9,10 @@ import java.util.*;
 
 public abstract class GhostAI {
     public abstract void move();
-    public abstract Point2D<Integer> getCurrentCoordinates();
+    public abstract DetailedPoint2D getCurrentCoordinates();
 
-    abstract Point2D<Integer> getTargetTile();
-    abstract Point2D<Integer> getPreviousPosition();
+    abstract DetailedPoint2D getTargetTile();
+    abstract DetailedPoint2D getPreviousPosition();
     abstract void setPreviousPosition();
     abstract void setCurrentPosition(int x, int y);
     abstract GameModel getGameModel();
@@ -28,13 +29,13 @@ public abstract class GhostAI {
         /* TODO: Refactor this code! */
         /* TODO: Make special interface for translate from firts type coordinates in second type */
         /* TODO: Rewrite this method! It looks very ugly! */
-        Point2D<Integer> pos = new Point2D<>(getCurrentCoordinates().x, getCurrentCoordinates().y);
+        Point2D pos = new Point2D(getCurrentCoordinates().x, getCurrentCoordinates().y);
         pos.x /= 10;
         pos.y /= 10;
-        Pair<Boolean, Point2D<Integer>> teleport = getGameModel().isTeleportationPoint(pos);
+        Pair<Boolean, Point2D> teleport = getGameModel().isTeleportationPoint(pos);
 
         if (teleport.getKey().booleanValue() && !afterTeleport()) {
-            Point2D<Integer> newPositionAfterTeleport = teleport.getValue();
+            Point2D newPositionAfterTeleport = teleport.getValue();
             setPreviousPosition();
             setCurrentPosition(newPositionAfterTeleport.x * 10, newPositionAfterTeleport.y * 10);
             usingTeleport(true);
@@ -42,11 +43,11 @@ public abstract class GhostAI {
         } else
             usingTeleport(false);
 
-        ArrayList<Point2D<Integer>> pathsList = getGameModel().getPathFromPosition(this);
+        ArrayList<DetailedPoint2D> pathsList = getGameModel().getPathFromPosition(this);
 
         // Removing our previous path from pathList
-        for (Point2D<Integer> currentPath : pathsList) {
-            if (currentPath.isEquals(getPreviousPosition())) {
+        for (DetailedPoint2D currentPath : pathsList) {
+            if (currentPath.equals(getPreviousPosition())) {
                 pathsList.remove(currentPath);
                 break;
             }
@@ -57,7 +58,7 @@ public abstract class GhostAI {
 
         if ((pathsList.size() + 1) < 3) {
             // Default case: choose current direction
-            for (Point2D<Integer> currentPatch : pathsList) {
+            for (DetailedPoint2D currentPatch : pathsList) {
                 if (!isLastMove(currentPatch)) {
                     checkAxisBlocking(currentPatch);
                     setPreviousPosition();
@@ -68,15 +69,14 @@ public abstract class GhostAI {
         }
 
         /* TODO: Repair this string */
-        ArrayList<Comparator<Point2D<Integer>>> cmp = getCmp();
+        ArrayList<Comparator<DetailedPoint2D>> cmp = getCmp();
         final int leftRigtCmps[] = {1, 3};
 
         // yellow intersections check!1
         if (getGameModel().isSpecialIntersection(getCurrentCoordinates())) {
-            System.out.println("Handling special intersection!");
             // find another side (not upwards)
             for (int currentCmp : leftRigtCmps) {
-                Optional<Point2D<Integer>> currentDirection = pathsList.stream().min(cmp.get(currentCmp));
+                Optional<DetailedPoint2D> currentDirection = pathsList.stream().min(cmp.get(currentCmp));
 
                 if (currentDirection.isPresent() && !isLastMove(currentDirection.get())) {
                     checkAxisBlocking(currentDirection.get());
@@ -90,7 +90,7 @@ public abstract class GhostAI {
             System.out.println("Error in handling special intersection");
         }
 
-        Point2D<Integer> target = getTargetTile();
+        DetailedPoint2D target = getTargetTile();
         double pathLength[] = new double[pathsList.size()];
         boolean equalsMins = false;
         double minLength = Integer.MAX_VALUE;
@@ -122,8 +122,8 @@ public abstract class GhostAI {
         }
 
         /* Now we should detect cell location */
-        for(Comparator<Point2D<Integer>> currentCmp : cmp) {
-            Optional<Point2D<Integer>> currentDirection = pathsList.stream().min(currentCmp);
+        for(Comparator<DetailedPoint2D> currentCmp : cmp) {
+            Optional<DetailedPoint2D> currentDirection = pathsList.stream().min(currentCmp);
 
             if (minEqualsChecker(currentDirection.get(), pathsList, currentCmp))
                 continue;
@@ -139,7 +139,7 @@ public abstract class GhostAI {
         return false;
     }
 
-    private void checkAxisBlocking(Point2D<Integer> position) {
+    private void checkAxisBlocking(DetailedPoint2D position) {
         if (getCurrentCoordinates().x != position.x)
             setBlockingOnAxisX(true);
         else if (getCurrentCoordinates().y != position.y)
@@ -152,7 +152,7 @@ public abstract class GhostAI {
             setBlockingOnAxisY(false);
     }
 
-    private boolean isLastMove(Point2D<Integer> currentMove) {
+    private boolean isLastMove(DetailedPoint2D currentMove) {
         if (currentMove.x != getPreviousPosition().x || currentMove.y != getPreviousPosition().y) {
             return false;
         }
@@ -160,23 +160,23 @@ public abstract class GhostAI {
         return true;
     }
 
-    boolean minEqualsChecker(Point2D<Integer> currentDirection, ArrayList<Point2D<Integer>> pathsList, Comparator<Point2D<Integer>> cmp) {
+    boolean minEqualsChecker(DetailedPoint2D currentDirection, ArrayList<DetailedPoint2D> pathsList, Comparator<DetailedPoint2D> cmp) {
         pathsList.remove(currentDirection);
-        Optional<Point2D<Integer>> secondMin = pathsList.stream().min(cmp);
+        Optional<DetailedPoint2D> secondMin = pathsList.stream().min(cmp);
         pathsList.add(currentDirection);
 
-        if (secondMin.get().isEquals(currentDirection))
+        if (secondMin.get().equals(currentDirection))
             return true;
 
         return false;
     }
 
     /* TODO: Change functions on lamda expressions */
-    ArrayList<Comparator<Point2D<Integer>>> getCmp()  {
-        ArrayList<Comparator<Point2D<Integer>>> cmp = new ArrayList<>();
-        cmp.add(new Comparator<Point2D<Integer>>() {
+    ArrayList<Comparator<DetailedPoint2D>> getCmp()  {
+        ArrayList<Comparator<DetailedPoint2D>> cmp = new ArrayList<>();
+        cmp.add(new Comparator<DetailedPoint2D>() {
             @Override
-            public int compare(Point2D<Integer> o1, Point2D<Integer> o2) {
+            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
                 if (o1.y < o2.y) {
                     return -1;
                 } else if (o2.y < o1.y)
@@ -185,9 +185,9 @@ public abstract class GhostAI {
             }
         });
 
-        cmp.add(new Comparator<Point2D<Integer>>() {
+        cmp.add(new Comparator<DetailedPoint2D>() {
             @Override
-            public int compare(Point2D<Integer> o1, Point2D<Integer> o2) {
+            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
                 if (o1.x < o2.x) {
                     return -1;
                 } else if (o2.x < o1.x)
@@ -196,9 +196,9 @@ public abstract class GhostAI {
             }
         });
 
-        cmp.add(new Comparator<Point2D<Integer>>() {
+        cmp.add(new Comparator<DetailedPoint2D>() {
             @Override
-            public int compare(Point2D<Integer> o1, Point2D<Integer> o2) {
+            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
                 if (o1.y > o2.y) {
                     return -1;
                 } else if (o2.y < o1.y)
@@ -207,7 +207,7 @@ public abstract class GhostAI {
             }
         });
 
-        cmp.add((Point2D<Integer> o1, Point2D<Integer> o2) -> {
+        cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
             if (o1.x > o2.x)
                 return -1;
             else if (o2.x > o1.x)

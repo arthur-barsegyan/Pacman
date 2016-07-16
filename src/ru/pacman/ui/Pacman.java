@@ -1,5 +1,6 @@
 package ru.pacman.ui;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 import javax.imageio.ImageIO;
@@ -16,7 +17,7 @@ public class Pacman extends JComponent implements PacmanLevelObject {
     Image picture_up;
     Image picture_down;
 
-    Pacman(Point2D<Integer> coords) {
+    Pacman(DetailedPoint2D coords) {
         updateCoords(coords);
 
         try {
@@ -29,7 +30,7 @@ public class Pacman extends JComponent implements PacmanLevelObject {
         }
     }
 
-    public void updateCoords(Point2D<Integer> coords) {
+    public void updateCoords(DetailedPoint2D coords) {
         x = coords.x * 2;
         y = coords.y * 2;
     }

@@ -1,22 +1,26 @@
 package ru.pacman.model;
 
-public class Point2D<PointType> {
-    public PointType x;
-    public PointType y;
+public class Point2D {
+    public int x;
+    public int y;
 
     public Point2D() {}
-    public Point2D(PointType _x, PointType _y) {
+    public Point2D(int _x, int _y) {
         x = _x;
         y = _y;
     }
 
-    public void setLocation(PointType diff_x, PointType diff_y) {
+    public void setLocation(int diff_x, int diff_y) {
         x = diff_x;
         y = diff_y;
     }
 
-    public boolean isEquals(Point2D<Integer> second) {
-        if (second.x.equals(x) && second.y.equals(y))
+    /* TODO: Reoverride hashcode() method */
+    public boolean equals(Object secondPoint) {
+        if (!(secondPoint instanceof Point2D))
+            return false;
+
+        if (((Point2D) secondPoint).x == x && ((Point2D) secondPoint).y == y)
             return true;
 
         return false;

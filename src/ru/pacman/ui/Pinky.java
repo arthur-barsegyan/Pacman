@@ -1,5 +1,6 @@
 package ru.pacman.ui;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.Point2D;
 
 import javax.imageio.ImageIO;
@@ -12,7 +13,7 @@ class Pinky extends JComponent implements Ghost {
     private int y;
     Image picture;
 
-    Pinky(Point2D<Integer> coords) {
+    Pinky(DetailedPoint2D coords) {
         updatePosition(coords);
 
         try {
@@ -33,7 +34,7 @@ class Pinky extends JComponent implements Ghost {
     }
 
     @Override
-    public void updatePosition(Point2D<Integer> position) {
+    public void updatePosition(DetailedPoint2D position) {
         x = position.x * 2;
         y = position.y * 2;
     }

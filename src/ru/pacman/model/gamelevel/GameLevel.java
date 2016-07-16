@@ -1,6 +1,7 @@
 package ru.pacman.model.gamelevel;
 
 import javafx.util.Pair;
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.parsers.GameLevelBundle;
 import ru.pacman.model.gamelevel.parsers.GameLevelParser;
@@ -35,15 +36,12 @@ public class GameLevel {
         }
     }
 
-    public int getWidth() { return data.width;}
+    public int getWidth() { return data.width; }
     public int getHeight() { return data.height; }
     public byte[] getLevelData() { return data.level; }
-    public Point2D getDefaultCoords(String characterName) {
-        Point2D<Integer> characterCoordinates = data.heroCoordinates.get(characterName);
-        return characterCoordinates;
-    }
-    public List<Point2D<Integer>> getSpecialIntersectionsList() { return data.nonIntersectionCoordinates; }
-    public List<Pair<Point2D<Integer>,Point2D<Integer>>> getTeleportationPoints() {
+    public DetailedPoint2D getDefaultCoords(String characterName) { return data.heroCoordinates.get(characterName); }
+    public List<DetailedPoint2D> getSpecialIntersectionsList() { return data.nonIntersectionCoordinates; }
+    public List<Pair<Point2D,Point2D>> getTeleportationPoints() {
         return data.teleportPointsCoordinates;
     }
 }

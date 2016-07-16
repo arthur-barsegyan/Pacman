@@ -1,5 +1,6 @@
 package ru.pacman.model.gamelevel.parsers;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.LevelFileFormatException;
 
@@ -12,8 +13,8 @@ public class NonIntersectionParser implements LevelParser  {
     public void parse(String sectionData, GameLevelBundle levelBundle) throws LevelFileFormatException {
         /* Tokenizer created with special flag, which specified current token */
         StringTokenizer dotsIterator = new StringTokenizer(sectionData, "(), \n", false);
-        List<Point2D<Integer>> tempCoordinates = new ArrayList<>();
-        Point2D<Integer> currentPos = new Point2D<Integer>();
+        List<DetailedPoint2D> tempCoordinates = new ArrayList<>();
+        DetailedPoint2D currentPos = new DetailedPoint2D();
         boolean endOfData = false;
         boolean currentCoord = true;
 
@@ -32,7 +33,7 @@ public class NonIntersectionParser implements LevelParser  {
                 else {
                     currentPos.y = Integer.parseInt(currentToken) * 10;
                     tempCoordinates.add(currentPos);
-                    currentPos = new Point2D<Integer>();
+                    currentPos = new DetailedPoint2D();
                 }
 
                 currentCoord = !currentCoord;

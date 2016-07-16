@@ -1,5 +1,6 @@
 package ru.pacman.ui;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.GameLevel;
@@ -14,7 +15,7 @@ class Blinky extends JComponent implements Ghost {
     private int y;
     Image picture;
 
-    Blinky(Point2D<Integer> coords) {
+    Blinky(DetailedPoint2D coords) {
         updatePosition(coords);
 
         try {
@@ -35,7 +36,7 @@ class Blinky extends JComponent implements Ghost {
     }
 
     @Override
-    public void updatePosition(Point2D<Integer> position) {
+    public void updatePosition(DetailedPoint2D position) {
         x = position.x * 2;
         y = position.y * 2;
     }

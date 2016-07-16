@@ -11,8 +11,8 @@ class SuperDotsParser implements LevelParser {
     public void parse(String sectionData, GameLevelBundle levelBundle) throws LevelFileFormatException {
         /* Tokenizer created with special flag, which specified current token */
         StringTokenizer dotsIterator = new StringTokenizer(sectionData, "(), \n", false);
-        List<Point2D<Integer>> tempCoordinates = new ArrayList<>();
-        Point2D<Integer> currentDot = new Point2D<>();
+        List<Point2D> tempCoordinates = new ArrayList<>();
+        Point2D currentDot = new Point2D();
         boolean endOfData = false;
         boolean currentCoord = true;
 
@@ -30,7 +30,7 @@ class SuperDotsParser implements LevelParser {
                 else {
                     currentDot.y = Integer.parseInt(currentToken);
                     tempCoordinates.add(currentDot);
-                    currentDot = new Point2D<Integer>();
+                    currentDot = new Point2D();
                 }
 
                 currentCoord = !currentCoord;

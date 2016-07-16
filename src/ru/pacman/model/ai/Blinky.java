@@ -1,5 +1,6 @@
 package ru.pacman.model.ai;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 
@@ -9,8 +10,8 @@ import java.util.Optional;
 
 public class Blinky extends GhostAI {
     GameModel model;
-    Point2D<Integer> currentPosition;
-    Point2D<Integer> previousPosition = new Point2D<>();
+    DetailedPoint2D currentPosition;
+    DetailedPoint2D previousPosition = new DetailedPoint2D();
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
     private boolean usingTeleport = false;
@@ -18,7 +19,7 @@ public class Blinky extends GhostAI {
     public Blinky(GameModel _model) {
         model = _model;
         currentPosition = model.getCharacterCoords("Blinky");
-        previousPosition = new Point2D<>(currentPosition.x, currentPosition.y);
+        previousPosition = new DetailedPoint2D(currentPosition.x, currentPosition.y);
     }
 
     @Override
@@ -43,17 +44,17 @@ public class Blinky extends GhostAI {
 
 
     @Override
-    public Point2D<Integer> getTargetTile() {
+    public DetailedPoint2D getTargetTile() {
         return model.getCharacterCoords("Pacman");
     }
 
     @Override
-    public Point2D<Integer> getCurrentCoordinates() {
+    public DetailedPoint2D getCurrentCoordinates() {
         return currentPosition;
     }
 
     @Override
-    Point2D<Integer> getPreviousPosition() {
+    DetailedPoint2D getPreviousPosition() {
         return previousPosition;
     }
 

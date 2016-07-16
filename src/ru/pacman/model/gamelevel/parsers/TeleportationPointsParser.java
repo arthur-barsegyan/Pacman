@@ -18,10 +18,10 @@ public class TeleportationPointsParser implements LevelParser {
         /* Tokenizer created with special flag, which specified current token */
         StringTokenizer teleportIterator = new StringTokenizer(sectionData, "(), \n", false);
         /* We use a Pair because we can very easily search teleport exit for every teleport entrance */
-        List<Pair<Point2D<Integer>, Point2D<Integer>>> tempCoordinates = new ArrayList<>();
+        List<Pair<Point2D, Point2D>> tempCoordinates = new ArrayList<>();
 
-        Point2D<Integer> currentEntrance = new Point2D<>();
-        Point2D<Integer> currentExit = new Point2D<>();
+        Point2D currentEntrance = new Point2D();
+        Point2D currentExit = new Point2D();
         boolean endOfData = false;
         boolean firstCoord = true;
         boolean endOfPoint = false;
@@ -53,8 +53,8 @@ public class TeleportationPointsParser implements LevelParser {
                                 currentExit.y = Integer.parseInt(currentToken);
                                 tempCoordinates.add(new Pair<>(currentEntrance, currentExit));
                                 endOfPoint = true;
-                                currentEntrance = new Point2D<>();
-                                currentExit = new Point2D<>();
+                                currentEntrance = new Point2D();
+                                currentExit = new Point2D();
                             }
                         }
 

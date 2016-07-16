@@ -3,54 +3,52 @@ package ru.pacman.model;
 import javafx.util.Pair;
 import ru.pacman.model.ai.*;
 import ru.pacman.model.gamelevel.GameLevel;
+import ru.pacman.model.gamelevel.LevelErrorLoadingException;
 import ru.pacman.model.gamelevel.LevelFileFormatException;
-import ru.pacman.ui.Ghost;
 
-import java.awt.event.KeyEvent;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.Math.min;
 import static ru.pacman.model.GameModel.MoveRules.LeftUpRule;
 import static ru.pacman.model.GameModel.MoveRules.RightDownRule;
 
-/* TODO: Refactor this class */
 public class GameModel {
-    public static final int GAMESTART = 1;
-    public static final int GAMEEND = 2;
+    private final String invalidLevelMessage = "Game can't loading level.\n" +
+                                               "Please check your \"PacmanLevelList.txt\" file and try again!";
     private PacmanResourceManager resources;
-    private List<String> levelNameList;
     private byte currentLevel[];
 
-    private String ghostsNames[] = {"Blinky", "Pinky", "Inky", "Clyde"};
+    private final String ghostsNames[] = {"Blinky", "Pinky", "Inky", "Clyde"};
     private ArrayList<GhostAI> ghosts;
     private boolean ghostAttack = false;
 
-    private int levelNumber = 0;
     private boolean levelOver = false;
     private boolean gameOver = false;
     private boolean winStatus = false;
     private int gameScore = 0;
 
+    /* TODO: Change this speed model */
     private int pacmanSpeed = 5;
     private Orientation pacmanOrientation = Orientation.RIGHT;
-    private Point2D<Integer> pacmanCoords;
-    private boolean changeDirection = false;
+    private DetailedPoint2D pacmanCoords;
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
-    private boolean isIntermediatePosition = false;
 
     private int dotsCounter = 0;
     private int dotsMaxCounter;
 
-    private final static int SIMPLEDOT_BONUS = 10;
-    private final static int SUPERDOT_BONUS = 100;
-    private final static int ENEMY_BONUS = 200;
-    private final static int objectSize = 10;
+    private final int SIMPLEDOT_BONUS = 10;
+    private final int SUPERDOT_BONUS = 100;
+    private final int ENEMY_BONUS = 200;
+    private final int objectSize = 10;
     private boolean afterTeleport = false;
+
+    public enum Orientation {
+        UP,
+        DOWN,
+        LEFT,
+        RIGHT
+    }
 
     enum Axis {
         X,
@@ -62,21 +60,15 @@ public class GameModel {
         LeftUpRule
     }
 
-    public enum Orientation {
-        UP,
-        DOWN,
-        LEFT,
-        RIGHT
-    }
-
     /* This constructor receive file which contains list with
        game levels file names. This method loading first level
-       from this list. */
-    public GameModel(String _levelNameList) throws LevelFileFormatException, IOException {
+       from this list and preparing for the game. */
+    public GameModel(String _levelNameList) throws LevelErrorLoadingException {
         try {
-            levelNameList = Files.readAllLines(Paths.get(_levelNameList));
-            resources = new PacmanResourceManager();
-            resources.loadLevel(levelNameList.get(levelNumber));
+            resources = new PacmanResourceManager(_levelNameList);
+            if (!resources.loadNextLevel())
+                throw new LevelErrorLoadingException(invalidLevelMessage);
+
             currentLevel = getCurrentLevel().getLevelData();
             pacmanCoords = getCharacterCoords("Pacman");
 
@@ -86,27 +78,49 @@ public class GameModel {
             ghosts.add(new Clyde(this));
             ghosts.add(new Inky(this));
 
-            dotsMaxCounter = getPrimaryDotsCount();
-            levelNumber++;
+            dotsMaxCounter = getDotsCount();
         } catch (LevelFileFormatException err) {
-            throw err;
-        } catch (IOException err) {
-            throw err;
+            /* User doesn't know about details */
+            throw new LevelErrorLoadingException(invalidLevelMessage);
         }
     }
 
-    /* TODO: It's normal practise? */
+    /* We create special method for starting game. After thar we independent about
+       View and Controller */
     public void gameStart() {
         //resources.handleSoundEvent("gamestart");
         //resources.handleSoundEvent("chasemode");
     }
 
+    public void newMovementAction() {
+        int x = pacmanCoords.x;
+        int y = pacmanCoords.y;
+
+        switch (pacmanOrientation) {
+            case UP:
+                handleMovementAction(new DetailedPoint2D(x, y - pacmanSpeed), MoveRules.LeftUpRule);
+                break;
+            case LEFT:
+                handleMovementAction(new DetailedPoint2D(x - pacmanSpeed, y), MoveRules.LeftUpRule);
+                break;
+            case RIGHT:
+                handleMovementAction(new DetailedPoint2D(x + pacmanSpeed, y), RightDownRule);
+                break;
+            case DOWN:
+                handleMovementAction(new DetailedPoint2D(x, y + pacmanSpeed), RightDownRule);
+                break;
+            default:
+                return;
+        }
+    }
+
+    /* TODO: Maybe we should made this method like static method? */
     public int getObjectSize() { return objectSize; }
     public int getDotsCounter() {
         return dotsCounter;
     }
 
-    public Point2D<Integer> getCharacterCoords(String characterName) {
+    public DetailedPoint2D getCharacterCoords(String characterName) {
         return getCurrentLevel().getDefaultCoords(characterName);
     }
 
@@ -118,14 +132,14 @@ public class GameModel {
 
     /* This method should receive special class - Ghost, which should contains of special methods for
        getting current coordinates and other special attributes */
-    public ArrayList<Point2D<Integer>> getPathFromPosition(GhostAI currentGhost) {
-        Point2D<Integer> currentPosition = currentGhost.getCurrentCoordinates();
+    public ArrayList<DetailedPoint2D> getPathFromPosition(GhostAI currentGhost) {
+        DetailedPoint2D currentPosition = currentGhost.getCurrentCoordinates();
         int xcells[] = {currentPosition.x + 1, currentPosition.x - 1, currentPosition.x, currentPosition.x};
         int ycells[] = {currentPosition.y, currentPosition.y, currentPosition.y + 1, currentPosition.y - 1};
         MoveRules rules[] = {MoveRules.RightDownRule, MoveRules.LeftUpRule, MoveRules.RightDownRule, MoveRules.LeftUpRule};
         Orientation side[] = {Orientation.RIGHT, Orientation.LEFT, Orientation.DOWN, Orientation.UP};
         Axis currentAxis[] = {Axis.X, Axis.X, Axis.Y, Axis.Y};
-        ArrayList<Point2D<Integer>> paths = new ArrayList<>();
+        ArrayList<DetailedPoint2D> paths = new ArrayList<>();
 
         /* TODO: BorderSafety ?! */
         /* TODO: We can't moving in ghost hotel */
@@ -143,22 +157,23 @@ public class GameModel {
                     break;
             }
 
-            if (!isBorderSafety(xcells[i], ycells[i]))
+            DetailedPoint2D detailedPathPoint = new DetailedPoint2D(xcells[i], ycells[i]);
+            if (!isBorderSafety(detailedPathPoint))
                 continue;
 
-            Point2D<Integer> cellPosition = getNewPosition(xcells[i], ycells[i], rules[i]);
-            char cellType = getCellType(cellPosition.x, cellPosition.y);
-            if (cellType == GameLevel.SIMPLEDOT || cellType == GameLevel.ROAD)
-                paths.add(new Point2D(xcells[i], ycells[i]));
+            Point2D cellPosition = getNewPosition(detailedPathPoint, rules[i]);
+            char cellType = getCellType(cellPosition);
+            if (cellType != GameLevel.WALL)
+                paths.add(detailedPathPoint);
         }
 
         return paths;
     }
 
-    public boolean isSpecialIntersection(Point2D<Integer> currentIntersection) {
-        List<Point2D<Integer>> specialIntersections = resources.getSpecialIntersectionsList();
+    public boolean isSpecialIntersection(DetailedPoint2D currentIntersection) {
+        List<DetailedPoint2D> specialIntersections = resources.getSpecialIntersectionsList();
 
-        for (Point2D<Integer> nonIntersection : specialIntersections) {
+        for (DetailedPoint2D nonIntersection : specialIntersections) {
             if (nonIntersection.equals(currentIntersection))
                 return true;
         }
@@ -166,12 +181,14 @@ public class GameModel {
         return false;
     }
 
+    public void changePacmanOrientation(Orientation orientation) {
+        pacmanOrientation = orientation;
+    }
+    public GameLevel getCurrentLevel() {
+        return resources.getCurrentLevel();
+    }
     public Orientation getPacmanOrientation() {
         return pacmanOrientation;
-    }
-
-    private void updateScore(int newAchieve) {
-        gameScore += newAchieve;
     }
 
     public boolean isGameOver() {
@@ -182,7 +199,7 @@ public class GameModel {
         return dotsMaxCounter;
     }
 
-    public int getPrimaryDotsCount() {
+    public int getDotsCount() {
         int counter = 0;
         for (int i = 0; i < currentLevel.length; i++) {
             if ((char)currentLevel[i] == GameLevel.SIMPLEDOT) {
@@ -194,117 +211,125 @@ public class GameModel {
     }
 
     public boolean isLevelOver() {
-        if (getDotsCounter() == getMaxDotsCount())
+        if (dotsCounter == dotsMaxCounter)
             levelOver = true;
 
         return levelOver;
     }
 
-    /* Load new level from file. If model doesn't knew about next levels
-     * then game is over and user has won. */
-    public boolean loadNextLevel() {
-        levelNumber++;
-        if (levelNumber > levelNameList.size()) {
-            winStatus = true;
-            gameOver = true;
-            return false;
+    public void checkGhostsAttack() {
+        for (String currentGhost : ghostsNames) {
+            if (pacmanCoords.equals(getCharacterCoords(currentGhost))) {
+                ghostAttack = true;
+                gameOver();
+                return;
+            }
         }
+    }
+
+    /* This method returns a special object - Pair. The key of this object - is a
+       boolean value which contains information about availability in this point
+       a teleport. If this value is a true then value of getting value it's a
+       position of this teleport exit */
+    public Pair<Boolean, Point2D> isTeleportationPoint(Point2D newCoordinates) {
+        List<Pair<Point2D, Point2D>> teleportationPoints = resources.getTeleportationPoints();
 
         try {
-            resources.loadLevel(levelNameList.get(levelNumber));
+            for (Pair<Point2D, Point2D> currentTeleportationPoint : teleportationPoints) {
+                if (currentTeleportationPoint.getKey().equals(newCoordinates))
+                    return new Pair<>(true, currentTeleportationPoint.getValue());
+            }
+        } catch (NullPointerException err) {
+            /* If in this level we don't have a teleportation points */
+        }
+
+        return new Pair<>(false, null);
+    }
+
+
+    /* Load new level from file. If ResourceManager doesn't knew about next levels
+     * then game is over and user has won. */
+    /* TODO: Why this method have public access? */
+    public boolean loadNextLevel() throws LevelFileFormatException {
+        try {
+            if (!resources.loadNextLevel()) {
+                winStatus = true;
+                gameOver = true;
+            }
         } catch (LevelFileFormatException err) {
-            return false;
+            /* If level exist but invalid - it's lose */
+            throw err;
         }
 
         return true;
     }
 
-    private Point2D<Integer> getNewPosition(int diff_x, int diff_y, MoveRules rule) {
-        int fractionDiff_x = diff_x / objectSize;
-        int fractionDiff_y = diff_y / objectSize;
-        int integerDiff_x = diff_x % objectSize;
-        int integerDiff_y = diff_y % objectSize;
+    private Point2D getNewPosition(DetailedPoint2D newCoordinates, MoveRules rule) {
+        int integerDiff_x = newCoordinates.x / objectSize;
+        int integerDiff_y = newCoordinates.y / objectSize;
+        int fractionDiff_x = newCoordinates.x % objectSize;
+        int fractionDiff_y = newCoordinates.y % objectSize;
+        Point2D newPosition = new Point2D(fractionDiff_x, fractionDiff_y);
 
         /* Cell border checker */
         switch (rule) {
             case RightDownRule: {
-                if (integerDiff_x > 0)
-                    integerDiff_x = fractionDiff_x + 1;
+                if (fractionDiff_x > 0)
+                    newPosition.x = integerDiff_x + 1;
                 else
-                    integerDiff_x = fractionDiff_x;
+                    newPosition.x = integerDiff_x;
 
-                if (integerDiff_y > 0)
-                    integerDiff_y = fractionDiff_y + 1;
+                if (fractionDiff_y > 0)
+                    newPosition.y = integerDiff_y + 1;
                 else
-                    integerDiff_y = fractionDiff_y;
+                    newPosition.y = integerDiff_y;
 
                 break;
             }
 
             case LeftUpRule: {
-                integerDiff_x = fractionDiff_x;
-                integerDiff_y = fractionDiff_y;
+                newPosition.x = integerDiff_x;
+                newPosition.y = integerDiff_y;
                 break;
             }
         }
 
-        Point2D<Integer> newPosition = new Point2D(integerDiff_x, integerDiff_y);
         return newPosition;
     }
 
-    /* TODO: Is it a normal practise? */
-    public Pair<Boolean, Point2D<Integer>> isTeleportationPoint(Point2D<Integer> newCoordinates) {
-        List<Pair<Point2D<Integer>, Point2D<Integer>>> teleportationPoints = resources.getTeleportationPoints();
-
-        try {
-            for (Pair<Point2D<Integer>, Point2D<Integer>> currentTeleportationPoint : teleportationPoints) {
-                if (currentTeleportationPoint.getKey().isEquals(newCoordinates)) {
-                    return new Pair<>(true, currentTeleportationPoint.getValue());
-                }
-            }
-        } catch (NullPointerException err) {}
-
-        return new Pair<>(false, null);
-    }
-
-    private char getCellType(int x, int y) {
+    private char getCellType(Point2D point) {
         GameLevel currentLvl = getCurrentLevel();
         byte level[] = currentLvl.getLevelData();
-        return (char)level[y * GameLevel.objectsOnXAxis + x];
+        return (char)level[point.y * getCurrentLevel().getWidth() + point.x];
     }
 
-    private void setCellType(int x, int y, char newValue) {
+    private void setCellType(Point2D point, char newValue) {
         GameLevel currentLvl = getCurrentLevel();
         byte level[] = currentLvl.getLevelData();
-        level[y * GameLevel.objectsOnXAxis + x] = (byte)newValue;
+        level[point.y * getCurrentLevel().getWidth() + point.x] = (byte)newValue;
     }
 
-    private boolean isBorderSafety(int diff_x, int diff_y) {
-        if ((diff_x < (GameLevel.objectsOnXAxis * 10) && diff_x >= 0) && (diff_y < (GameLevel.objectsOnYAxis * 10) && diff_y >= 0))
+    /* TODO: Rewrite this method! */
+    private boolean isBorderSafety(DetailedPoint2D point) {
+        if ((point.x < (getCurrentLevel().getWidth() * 10) && point.x >= 0) && (point.y < (getCurrentLevel().getHeight() * 10) && point.y >= 0))
             return true;
 
         return false;
     }
 
-    private boolean newPositionChecker(int diff_x, int diff_y, MoveRules rule) {
-        if (isBorderSafety(diff_x, diff_y)) {
-            Point2D<Integer> newPosition = getNewPosition(diff_x, diff_y, rule);
+    private boolean newPositionChecker(DetailedPoint2D newCoordinates, MoveRules rule) {
+        if (isBorderSafety(newCoordinates)) {
+            Point2D newPosition = getNewPosition(newCoordinates, rule);
 
-            if (diff_x % objectSize > 0) {
+            if (newCoordinates.x % objectSize > 0)
                 blockAxisX = true;
-                isIntermediatePosition = true;
-            } else {
+            else
                 blockAxisX = false;
-                isIntermediatePosition = false;
-            }
 
-            if (diff_y % objectSize > 0) {
+            if (newCoordinates.y % objectSize > 0)
                 blockAxisY = true;
-                isIntermediatePosition = true;
-            } else {
+            else
                 blockAxisY = false;
-                isIntermediatePosition = false;
-            }
 
             switch (pacmanOrientation) {
                 case UP:
@@ -325,7 +350,7 @@ public class GameModel {
                     break;
             }
 
-            char currentLocation = getCellType(newPosition.x, newPosition.y);
+            char currentLocation = getCellType(newPosition);
             if (currentLocation != GameLevel.WALL)
                 return true;
         }
@@ -349,14 +374,13 @@ public class GameModel {
         }
     }
 
-    private void handleMovementAction(int diff_x, int diff_y, MoveRules rule) {
-        boolean newPosState = newPositionChecker(diff_x, diff_y, rule);
+    private void handleMovementAction(DetailedPoint2D newCoordinates, MoveRules rule) {
+        boolean newPosState = newPositionChecker(newCoordinates, rule);
 
         if (newPosState) {
-            pacmanCoords.setLocation(diff_x, diff_y);
-            Point2D<Integer> newPosition = getNewPosition(diff_x, diff_y, rule);
-
-            char newCellType = getCellType(newPosition.x, newPosition.y);
+            pacmanCoords.setLocation(newCoordinates.x, newCoordinates.y);
+            Point2D newPosition = getNewPosition(newCoordinates, rule);
+            char newCellType = getCellType(newPosition);
 
             switch (newCellType) {
                 case GameLevel.ROAD:
@@ -365,24 +389,24 @@ public class GameModel {
                     dotsCounter++;
                     updateScore(SIMPLEDOT_BONUS);
                     //resources.handleSoundEvent("simpledot");
-                    setCellType(newPosition.x, newPosition.y, GameLevel.ROAD);
+                    setCellType(newPosition, GameLevel.ROAD);
                     break;
                 case GameLevel.SUPERDOT:
                     updateScore(SUPERDOT_BONUS);
                     // change game mode!
                     //resources.handleSoundEvent("ghosteaten");
-                    setCellType(newPosition.x, newPosition.y, GameLevel.ROAD);
+                    setCellType(newPosition, GameLevel.ROAD);
                     break;
             }
 
             if (!afterTeleport) {
-                Pair<Boolean, Point2D<Integer>> teleport = isTeleportationPoint(newPosition);
+                Pair<Boolean, Point2D> teleport = isTeleportationPoint(newPosition);
 
                 if (teleport.getKey().booleanValue()) {
-                    Point2D<Integer> newPositionAfterTeleport = teleport.getValue();
+                    Point2D newPositionAfterTeleport = teleport.getValue();
                     Orientation newPacmanOrientation = detectOrientationByTeleportExit(newPositionAfterTeleport);
                     afterTeleport = true;
-                    handleMovementAction(newPositionAfterTeleport.x * objectSize, newPositionAfterTeleport.y * objectSize,
+                    handleMovementAction(getDetailedPoint2D(newPositionAfterTeleport),
                                          getRuleByOrientation(newPacmanOrientation));
                     changePacmanOrientation(newPacmanOrientation);
                     return;
@@ -393,10 +417,11 @@ public class GameModel {
         }
     }
 
-    private Orientation detectOrientationByTeleportExit(Point2D<Integer> newPositionAfterTeleport) {
-        // get width and height of game area
-        // compare with newPosition coords
-        // and we have 4 cases - our orientation
+    private DetailedPoint2D getDetailedPoint2D(Point2D point) {
+        return new DetailedPoint2D(point.x * objectSize, point.y * objectSize);
+    }
+
+    private Orientation detectOrientationByTeleportExit(Point2D newPositionAfterTeleport) {
         int x = newPositionAfterTeleport.x;
         int y = newPositionAfterTeleport.y;
         int fieldWidth = resources.getCurrentLevel().getWidth();
@@ -416,51 +441,14 @@ public class GameModel {
         return null;
     }
 
-    public void checkGhostsAttack() {
-        for (String currentGhost : ghostsNames) {
-            if (pacmanCoords.isEquals(getCharacterCoords(currentGhost))) {
-                ghostAttack = true;
-                gameOver();
-                return;
-            }
-        }
-    }
-
     private void gameOver() {
         if (ghostAttack) {
             //resources.handleSoundEvent("gameover");
-        }
-
-        gameOver = true;
+        } else
+            System.out.println("You winner!");
     }
 
-    public void changePacmanOrientation(Orientation orientation) {
-        pacmanOrientation = orientation;
-    }
-
-    public void newAction() {
-        int x = pacmanCoords.x;
-        int y = pacmanCoords.y;
-
-        switch (pacmanOrientation) {
-            case UP:
-                handleMovementAction(x, y - pacmanSpeed, MoveRules.LeftUpRule);
-                break;
-            case LEFT:
-                handleMovementAction(x - pacmanSpeed, y, MoveRules.LeftUpRule);
-                break;
-            case RIGHT:
-                handleMovementAction(x + pacmanSpeed, y, RightDownRule);
-                break;
-            case DOWN:
-                handleMovementAction(x, y + pacmanSpeed, RightDownRule);
-                break;
-            default:
-                return;
-        }
-    }
-
-    public GameLevel getCurrentLevel() {
-        return resources.getCurrentLevel();
+    private void updateScore(int newAchieve) {
+        gameScore += newAchieve;
     }
 }

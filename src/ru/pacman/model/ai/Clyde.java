@@ -1,5 +1,6 @@
 package ru.pacman.model.ai;
 
+import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.GameLevel;
@@ -11,8 +12,8 @@ import java.util.Optional;
 
 public class Clyde extends GhostAI {
     GameModel model;
-    Point2D<Integer> previousPosition = new Point2D<>(-1, -1);
-    Point2D<Integer> currentPosition = null;
+    DetailedPoint2D previousPosition = new DetailedPoint2D(-1, -1);
+    DetailedPoint2D currentPosition = null;
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
     private boolean usingTeleport = false;
@@ -40,16 +41,16 @@ public class Clyde extends GhostAI {
     }
 
     @Override
-    Point2D<Integer> getPreviousPosition() {
+    DetailedPoint2D getPreviousPosition() {
         return previousPosition;
     }
 
     /* TODO: Recheck this method */
     @Override
-    public Point2D<Integer> getTargetTile() {
-        Point2D<Integer> pacmanPosition = model.getCharacterCoords("Pacman");
+    public DetailedPoint2D getTargetTile() {
+        DetailedPoint2D pacmanPosition = model.getCharacterCoords("Pacman");
         GameModel.Orientation pacmanOrientation = model.getPacmanOrientation();
-        Point2D<Integer> target = new Point2D<>(0, 0);
+        DetailedPoint2D target = new DetailedPoint2D(0, 0);
 
         double lengthToPacman = Math.sqrt((Math.pow(pacmanPosition.x - currentPosition.x, 2) +
                 Math.pow(pacmanPosition.y - currentPosition.y, 2)));
@@ -64,7 +65,7 @@ public class Clyde extends GhostAI {
     }
 
     @Override
-    public Point2D<Integer> getCurrentCoordinates() {
+    public DetailedPoint2D getCurrentCoordinates() {
         return currentPosition;
     }
 
