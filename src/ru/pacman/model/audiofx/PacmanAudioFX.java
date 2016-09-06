@@ -1,27 +1,16 @@
-package ru.pacman.model;
+package ru.pacman.model.audiofx;
 
-import java.awt.event.ActionEvent;
 import java.io.*;
 import java.util.*;
-import java.util.Timer;
 
 import com.sun.org.apache.bcel.internal.util.ClassLoader;
-//import jaco.mp3.player.MP3Player;
-import javafx.beans.property.BooleanProperty;
-import javafx.embed.swing.JFXPanel;
-import javafx.scene.media.AudioClip;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.util.Duration;
+import ru.pacman.model.audiofx.AudioFXInitException;
 
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.Clip;
-import javax.swing.*;
+import javax.sound.sampled.*;
 
 /* We can have one permanently sound and some temp sound which should playing
    with main theme (or instead) */
-class PacmanAudioFX extends JFXPanel {
+class PacmanAudioFX {
     private Map<String, Clip> eventSoundMatcher = new TreeMap<>();
     private Properties propertiesReader = new Properties();
     private ClassLoader propertiesLoader = new ClassLoader();
@@ -52,21 +41,20 @@ class PacmanAudioFX extends JFXPanel {
             }
 
             try {
-                /*MP3Player eventSound = eventSoundMatcher.get(event);*/
                 Clip eventSound = eventSoundMatcher.get(event);
-                handleUninterruptedEvent(eventSound);
+                eventSound.setFramePosition(0);
+                eventSound.start();
+                /* TODO: When I waiting end of my sound via "handleUnterruptedEvent()" I lost sound after teleport */
+                //handleUninterruptedEvent(eventSound);
             } catch (Throwable e) {
                 e.printStackTrace();
             }
         }
     });
 
-    /*javax.swing.Timer siren = new javax.swing.Timer(2000, (ActionEvent event) -> {
-        handleUninterruptedEvent(mainSound);
-    });*/
-
     private Thread primarySoundThread = new Thread(() -> {
         while (!Thread.currentThread().isInterrupted()) {
+            /* I can't synchronized on mainSound because this object can be null */
             synchronized (isMainSoundActive) {
                 while (!isMainSoundActive.isActive()) {
                     try {
@@ -78,30 +66,7 @@ class PacmanAudioFX extends JFXPanel {
             }
 
             try {
-                //mainSound.setRepeat(false);
-                //mainSound.play();
-                /*mainSound.setStartTime(new Duration(150));
-                mainSound.setStopTime(new Duration(1400));
-                *///mainSound.setCycleCount(MediaPlayer.INDEFINITE);
-                /*mainSound.setOnPlaying(() -> {
-                    System.out.println("HERE");
-                    if (mainSound.getCurrentTime().greaterThan(new Duration(1500))) {
-                        mainSound.seek(new Duration(150));
-                    }
-                });*/
-
                 handleUninterruptedEvent(mainSound);
-                Thread.sleep(1500);
-                Thread test = new Thread(() -> {
-                   handleUninterruptedEvent(mainSound);
-                });
-                test.run();
-                /*mainSound.setOnEndOfMedia(new Runnable() {
-                    public void run() {
-                        mainSound.seek(Duration.ZERO);
-                        mainSound.play();
-                    }
-                });*/
             } catch (Throwable e) {
                 e.printStackTrace();
             }
@@ -114,7 +79,7 @@ class PacmanAudioFX extends JFXPanel {
         }
     }
 
-    public PacmanAudioFX() throws IOException {
+    public PacmanAudioFX() throws AudioFXInitException {
         InputStream fileStream = propertiesLoader.getResourceAsStream("PacmanSFXProperties.txt");
 
         if (fileStream == null) {
@@ -126,36 +91,31 @@ class PacmanAudioFX extends JFXPanel {
             Set<String> tracks = propertiesReader.stringPropertyNames();
 
             for (String track : tracks) {
-                File tempFile = new File(propertiesReader.getProperty(track));
-                //Media sound = new Media(tempFile.toURI().toString());
-                /*AudioClip player = new AudioClip(tempFile.toURI().toString());
-                */
-                AudioInputStream sound = AudioSystem.getAudioInputStream(tempFile);
-                Clip clip = AudioSystem.getClip();
-                clip.open(sound);
-                eventSoundMatcher.put(track, clip);
-                /*MP3Player playMP3 = new MP3Player(tempFile);
-                eventSoundMatcher.put(track, playMP3);*/
+                File soundFile = new File(propertiesReader.getProperty(track));
+                AudioInputStream soundFileStream = AudioSystem.getAudioInputStream(soundFile);
+
+                DataLine.Info info = new DataLine.Info(Clip.class, soundFileStream.getFormat());
+                Clip player = (Clip) AudioSystem.getLine(info);
+                player.open(soundFileStream);
+
+                eventSoundMatcher.put(track, player);
             }
 
             primarySoundThread.start();
-            //secondarySoundThread.start();
-        } catch (IOException err) {
-            //log.error("Problem with parsing factory config file!");
-            throw err;
+            secondarySoundThread.start();
         } catch (Throwable err) {
-            System.out.println(err.getMessage());
+            throw new AudioFXInitException("AudioFX system isn't initialized");
         } finally {
-            if (fileStream != null)
-                fileStream.close();
+            try {
+                if (fileStream != null)
+                    fileStream.close();
+            } catch (IOException e) {}
         }
     }
 
     private void handleUninterruptedEvent(Clip eventPlayer) {
-       synchronized (eventPlayer) {
-           eventPlayer.setFramePosition(0);
-           eventPlayer.start();
-       }
+        eventPlayer.start();
+        while(eventPlayer.getMicrosecondLength() != eventPlayer.getMicrosecondPosition()) {}
     }
 
     public void handleEvent(String event) {
