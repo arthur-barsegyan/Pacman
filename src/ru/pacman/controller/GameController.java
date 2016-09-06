@@ -56,8 +56,8 @@ public class GameController implements PacmanGameController {
 
     }
 
-    public GameLevel getLevelState() {
-        return model.getCurrentLevel();
+    public byte[] getLevelData() {
+        return model.getLevelData();
     }
 
     public void addView(PacmanGameView _view) { views.add(_view); }

@@ -16,6 +16,7 @@ public class Pinky extends GhostAI {
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
     private boolean usingTeleport = false;
+    private boolean insideTheHotel = true;
 
     public Pinky(GameModel _model) {
         model = _model;
@@ -108,6 +109,16 @@ public class Pinky extends GhostAI {
     @Override
     protected boolean afterTeleport() {
         return usingTeleport;
+    }
+
+    @Override
+    protected void setHotelOutState(boolean state) {
+        insideTheHotel = !state;
+    }
+
+    @Override
+    protected boolean isInsideTheHotel() {
+        return insideTheHotel;
     }
 
     @Override

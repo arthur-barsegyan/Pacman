@@ -1,6 +1,5 @@
 package ru.pacman.model.ai;
 
-import javafx.util.Pair;
 import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
@@ -21,76 +20,82 @@ public abstract class GhostAI {
     abstract public boolean isBlockingOnAxisY();
     abstract public void setBlockingOnAxisX(boolean state);
     abstract public void setBlockingOnAxisY(boolean state);
+
     protected abstract void usingTeleport(boolean state);
     protected abstract boolean afterTeleport();
 
+    protected abstract void setHotelOutState(boolean state);
+    protected abstract boolean isInsideTheHotel();
+
+    /* TODO: Refactor this code! */
     boolean moveAlgo() {
-        // teleportation point check
-        /* TODO: Refactor this code! */
-        /* TODO: Make special interface for translate from firts type coordinates in second type */
-        /* TODO: Rewrite this method! It looks very ugly! */
-        Point2D pos = new Point2D(getCurrentCoordinates().x, getCurrentCoordinates().y);
-        pos.x /= 10;
-        pos.y /= 10;
-        Pair<Boolean, Point2D> teleport = getGameModel().isTeleportationPoint(pos);
-
-        if (teleport.getKey().booleanValue() && !afterTeleport()) {
-            Point2D newPositionAfterTeleport = teleport.getValue();
-            setPreviousPosition();
-            setCurrentPosition(newPositionAfterTeleport.x * 10, newPositionAfterTeleport.y * 10);
-            usingTeleport(true);
-            return true;
-        } else
-            usingTeleport(false);
-
         ArrayList<DetailedPoint2D> pathsList = getGameModel().getPathFromPosition(this);
+         /* TODO: Repair this string */
+        ArrayList<Comparator<DetailedPoint2D>> cmp = getCmp();
+        if (getCurrentCoordinates().equals(getGameModel().getGhostHotelExitCoordinates()))
+            setHotelOutState(true);
 
-        // Removing our previous path from pathList
-        for (DetailedPoint2D currentPath : pathsList) {
-            if (currentPath.equals(getPreviousPosition())) {
-                pathsList.remove(currentPath);
-                break;
+        if (!isInsideTheHotel()) {
+            // Teleportation point check
+            Point2D currentPosition = getGameModel().fromDetailedCoordinatesToSimple(getCurrentCoordinates());
+            // Maybe I should convert teleport coords to detailed when i parse this data?!
+            GameModel.TeleportationStatus teleport = getGameModel().isTeleportationPoint(currentPosition);
+
+            if (teleport.getTeleportationState() && !afterTeleport()) {
+                DetailedPoint2D newPositionAfterTeleport = teleport.getTeleportationCoords();
+                setPreviousPosition();
+                setCurrentPosition(newPositionAfterTeleport.x, newPositionAfterTeleport.y);
+                usingTeleport(true);
+                return true;
+            } else
+                usingTeleport(false);
+
+            // Removing our previous path and ghost hotel enter path from pathList
+            /* TODO: Read more about ArrayList structure */
+            int pathCounter = pathsList.size();
+            for (Iterator<DetailedPoint2D> it = pathsList.iterator(); it.hasNext(); ) {
+                DetailedPoint2D currentPath = it.next();
+                if (currentPath.equals(getPreviousPosition()) || getGameModel().checkGhostHotelZone(currentPath))
+                    it.remove();
             }
-        }
 
-        // TODO: Ghost hotel check
-        // while ghost contains in hotel, our target is a hotel exit
-
-        if ((pathsList.size() + 1) < 3) {
-            // Default case: choose current direction
-            for (DetailedPoint2D currentPatch : pathsList) {
-                if (!isLastMove(currentPatch)) {
+            // If this case isn't intersection
+            if (pathCounter < 3) {
+                // Default case: choose current direction
+                for (DetailedPoint2D currentPatch : pathsList) {
+                    //if (!isLastMove(currentPatch)) { // todo: useless???1
                     checkAxisBlocking(currentPatch);
                     setPreviousPosition();
                     setCurrentPosition(currentPatch.x, currentPatch.y);
                     return true;
+                    //}
+                }
+            }
+
+            final int leftRigtCmps[] = {1, 3};
+
+            /* TODO: It's doesn't work! Ghost cannot moving upwards! */
+            if (getGameModel().isSpecialIntersection(getCurrentCoordinates())) {
+                // find another side (not upwards)
+                for (int currentCmp : leftRigtCmps) {
+                    Optional<DetailedPoint2D> currentDirection = pathsList.stream().min(cmp.get(currentCmp));
+
+                    if (currentDirection.isPresent() && !isLastMove(currentDirection.get())) {
+                        checkAxisBlocking(currentDirection.get());
+                        setPreviousPosition();
+                        setCurrentPosition(currentDirection.get().x, currentDirection.get().y);
+                        return true;
+                    }
                 }
             }
         }
 
-        /* TODO: Repair this string */
-        ArrayList<Comparator<DetailedPoint2D>> cmp = getCmp();
-        final int leftRigtCmps[] = {1, 3};
+        DetailedPoint2D target;
+        if (isInsideTheHotel())
+            target = getGameModel().getGhostHotelExitCoordinates();
+        else
+            target = getTargetTile();
 
-        // yellow intersections check!1
-        if (getGameModel().isSpecialIntersection(getCurrentCoordinates())) {
-            // find another side (not upwards)
-            for (int currentCmp : leftRigtCmps) {
-                Optional<DetailedPoint2D> currentDirection = pathsList.stream().min(cmp.get(currentCmp));
-
-                if (currentDirection.isPresent() && !isLastMove(currentDirection.get())) {
-                    checkAxisBlocking(currentDirection.get());
-                    setPreviousPosition();
-                    setCurrentPosition(currentDirection.get().x, currentDirection.get().y);
-                    return true;
-                }
-            }
-
-            // unexpected situation - error
-            System.out.println("Error in handling special intersection");
-        }
-
-        DetailedPoint2D target = getTargetTile();
         double pathLength[] = new double[pathsList.size()];
         boolean equalsMins = false;
         double minLength = Integer.MAX_VALUE;
@@ -171,40 +176,30 @@ public abstract class GhostAI {
         return false;
     }
 
-    /* TODO: Change functions on lamda expressions */
     ArrayList<Comparator<DetailedPoint2D>> getCmp()  {
         ArrayList<Comparator<DetailedPoint2D>> cmp = new ArrayList<>();
-        cmp.add(new Comparator<DetailedPoint2D>() {
-            @Override
-            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
+        cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
                 if (o1.y < o2.y) {
                     return -1;
                 } else if (o2.y < o1.y)
                     return 1;
                 return 0;
-            }
         });
 
-        cmp.add(new Comparator<DetailedPoint2D>() {
-            @Override
-            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
+        cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
                 if (o1.x < o2.x) {
                     return -1;
                 } else if (o2.x < o1.x)
                     return 1;
                 return 0;
-            }
         });
 
-        cmp.add(new Comparator<DetailedPoint2D>() {
-            @Override
-            public int compare(DetailedPoint2D o1, DetailedPoint2D o2) {
+        cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
                 if (o1.y > o2.y) {
                     return -1;
                 } else if (o2.y < o1.y)
                     return 1;
                 return 0;
-            }
         });
 
         cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {

@@ -19,7 +19,7 @@ public class PacmanField extends JComponent {
 
     PacmanField(PacmanGameController _controller) {
         controller = _controller;
-        level = controller.getLevelState().getLevelData();
+        level = controller.getLevelData();
         fieldInit();
         //setDoubleBuffered(true);
     }

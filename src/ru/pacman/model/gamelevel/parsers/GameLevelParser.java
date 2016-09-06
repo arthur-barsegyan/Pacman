@@ -16,7 +16,7 @@ public class GameLevelParser {
     private java.lang.ClassLoader gameLevelLoader = getClass().getClassLoader();
     private Properties propertiesReader= new Properties();
     private List<String> sectionsHandled = new ArrayList<>();
-    private static String[] importantSections = {"map", "start_pos"};/*, "ghost_hotel"};*/
+    private static String[] importantSections = {"map", "start_pos", "ghost_hotel"};
 
     public GameLevelParser(String levelName) throws IOException {
         gameLevelName = levelName;
@@ -30,7 +30,7 @@ public class GameLevelParser {
 
     public static byte[] inputStreamToByteArray(InputStream data) throws IOException {
         if (data == null)
-            throw new NullPointerException("InputStream with source code is empty");
+            throw new NullPointerException("InputStream is empty");
 
         ByteArrayOutputStream tempStream = new ByteArrayOutputStream();
         byte tempBuffer[] = new byte[4096];

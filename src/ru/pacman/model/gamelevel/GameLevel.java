@@ -22,7 +22,7 @@ public class GameLevel {
     private String gameLevelName;
     private GameLevelBundle data;
 
-    public GameLevel(String levelName) throws LevelFileFormatException {
+    public GameLevel(String levelName) throws LevelFileFormatException, LevelErrorLoadingException {
         data = new GameLevelBundle();
         gameLevelName = levelName;
 
@@ -30,7 +30,7 @@ public class GameLevel {
             GameLevelParser levelReader = new GameLevelParser(levelName);
             levelReader.parseLevelFile(data);
         } catch (IOException err) {
-
+            throw new LevelErrorLoadingException("Game level can't be read");
         } catch (LevelFileFormatException err) {
             throw err;
         }
@@ -44,6 +44,9 @@ public class GameLevel {
     public List<Pair<Point2D,Point2D>> getTeleportationPoints() {
         return data.teleportPointsCoordinates;
     }
+    /* TODO: Create special object which will have methods for getting coords for enter and exit points */
+    public DetailedPoint2D getGhostHotelEnterCoords() { return data.ghostHotelEnter; }
+    public DetailedPoint2D getGhostHotelExitCoords() { return data.ghostHotelExit; }
 }
 
 

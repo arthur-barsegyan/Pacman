@@ -16,7 +16,8 @@ public class GameModel {
     private final String invalidLevelMessage = "Game can't loading level.\n" +
                                                "Please check your \"PacmanLevelList.txt\" file and try again!";
     private PacmanResourceManager resources;
-    private byte currentLevel[];
+    private GameLevel currentLevel;
+    private byte currentLevelData[];
 
     private final String ghostsNames[] = {"Blinky", "Pinky", "Inky", "Clyde"};
     private ArrayList<GhostAI> ghosts;
@@ -27,8 +28,8 @@ public class GameModel {
     private boolean winStatus = false;
     private int gameScore = 0;
 
-    /* TODO: Change this speed model */
-    private int pacmanSpeed = 5;
+    /* TODO: IMPORTANT! Change this speed model */
+    private final int pacmanSpeed = 5;
     private Orientation pacmanOrientation = Orientation.RIGHT;
     private DetailedPoint2D pacmanCoords;
     private boolean blockAxisX = false;
@@ -42,6 +43,21 @@ public class GameModel {
     private final int ENEMY_BONUS = 200;
     private final int objectSize = 10;
     private boolean afterTeleport = false;
+
+    public static class TeleportationStatus {
+        private boolean teleportationState = false;
+        private DetailedPoint2D teleportationCoords;
+
+        TeleportationStatus(DetailedPoint2D coords) {
+            if (coords != null) {
+                teleportationCoords = coords;
+                teleportationState = true;
+            }
+        }
+
+        public boolean getTeleportationState() { return teleportationState; }
+        public DetailedPoint2D getTeleportationCoords() { return teleportationCoords; }
+    }
 
     public enum Orientation {
         UP,
@@ -66,10 +82,11 @@ public class GameModel {
     public GameModel(String _levelNameList) throws LevelErrorLoadingException {
         try {
             resources = new PacmanResourceManager(_levelNameList);
-            if (!resources.loadNextLevel())
+            currentLevel = resources.loadNextLevel();
+            if (currentLevel == null)
                 throw new LevelErrorLoadingException(invalidLevelMessage);
 
-            currentLevel = getCurrentLevel().getLevelData();
+            currentLevelData = currentLevel.getLevelData();
             pacmanCoords = getCharacterCoords("Pacman");
 
             ghosts = new ArrayList<>();
@@ -88,7 +105,7 @@ public class GameModel {
     /* We create special method for starting game. After thar we independent about
        View and Controller */
     public void gameStart() {
-        //resources.handleSoundEvent("gamestart");
+        resources.handleSoundEvent("gamestart");
         //resources.handleSoundEvent("chasemode");
     }
 
@@ -121,13 +138,17 @@ public class GameModel {
     }
 
     public DetailedPoint2D getCharacterCoords(String characterName) {
-        return getCurrentLevel().getDefaultCoords(characterName);
+        return currentLevel.getDefaultCoords(characterName);
     }
 
     public void updateGhostsPosition() {
         for (GhostAI currentGhost : ghosts) {
             currentGhost.move();
         }
+    }
+
+    public DetailedPoint2D getGhostHotelExitCoordinates() {
+        return currentLevel.getGhostHotelExitCoords();
     }
 
     /* This method should receive special class - Ghost, which should contains of special methods for
@@ -171,7 +192,7 @@ public class GameModel {
     }
 
     public boolean isSpecialIntersection(DetailedPoint2D currentIntersection) {
-        List<DetailedPoint2D> specialIntersections = resources.getSpecialIntersectionsList();
+        List<DetailedPoint2D> specialIntersections = currentLevel.getSpecialIntersectionsList();
 
         for (DetailedPoint2D nonIntersection : specialIntersections) {
             if (nonIntersection.equals(currentIntersection))
@@ -181,12 +202,21 @@ public class GameModel {
         return false;
     }
 
+
+    public boolean checkGhostHotelZone(DetailedPoint2D currentPosition) {
+        int x = currentLevel.getGhostHotelEnterCoords().x;
+        int y = currentLevel.getGhostHotelEnterCoords().y;
+
+        if (Math.abs(currentPosition.x - x) < objectSize && Math.abs(currentPosition.y - y) < objectSize)
+            return true;
+
+        return false;
+    }
+
     public void changePacmanOrientation(Orientation orientation) {
         pacmanOrientation = orientation;
     }
-    public GameLevel getCurrentLevel() {
-        return resources.getCurrentLevel();
-    }
+
     public Orientation getPacmanOrientation() {
         return pacmanOrientation;
     }
@@ -201,8 +231,8 @@ public class GameModel {
 
     public int getDotsCount() {
         int counter = 0;
-        for (int i = 0; i < currentLevel.length; i++) {
-            if ((char)currentLevel[i] == GameLevel.SIMPLEDOT) {
+        for (int i = 0; i < currentLevelData.length; i++) {
+            if ((char)currentLevelData[i] == GameLevel.SIMPLEDOT) {
                 counter++;
             }
         }
@@ -227,41 +257,52 @@ public class GameModel {
         }
     }
 
-    /* This method returns a special object - Pair. The key of this object - is a
-       boolean value which contains information about availability in this point
-       a teleport. If this value is a true then value of getting value it's a
-       position of this teleport exit */
-    public Pair<Boolean, Point2D> isTeleportationPoint(Point2D newCoordinates) {
-        List<Pair<Point2D, Point2D>> teleportationPoints = resources.getTeleportationPoints();
+    public TeleportationStatus isTeleportationPoint(Point2D newCoordinates) {
+        List<Pair<Point2D, Point2D>> teleportationPoints = currentLevel.getTeleportationPoints();
 
         try {
             for (Pair<Point2D, Point2D> currentTeleportationPoint : teleportationPoints) {
                 if (currentTeleportationPoint.getKey().equals(newCoordinates))
-                    return new Pair<>(true, currentTeleportationPoint.getValue());
+                    return new TeleportationStatus(fromSimpleCoordinatesToDetailed(currentTeleportationPoint.getValue()));
             }
         } catch (NullPointerException err) {
             /* If in this level we don't have a teleportation points */
         }
 
-        return new Pair<>(false, null);
+        return new TeleportationStatus(null);
     }
 
 
     /* Load new level from file. If ResourceManager doesn't knew about next levels
      * then game is over and user has won. */
-    /* TODO: Why this method have public access? */
-    public boolean loadNextLevel() throws LevelFileFormatException {
+    public boolean loadNextLevel() throws LevelFileFormatException, LevelErrorLoadingException {
         try {
-            if (!resources.loadNextLevel()) {
+            currentLevel = resources.loadNextLevel();
+            if (currentLevel == null) {
                 winStatus = true;
                 gameOver = true;
+                return false;
             }
+        /* If level exist but invalid - it's lose */
         } catch (LevelFileFormatException err) {
-            /* If level exist but invalid - it's lose */
+            throw err;
+        } catch (LevelErrorLoadingException err) {
             throw err;
         }
 
         return true;
+    }
+
+    public int getWidth() { return currentLevel.getWidth(); }
+    public int getHeight() { return currentLevel. getHeight(); }
+
+    /* TODO: Recheck this method; Maybe I should use objectSize instead getWidth/getHeight? */
+    public Point2D fromDetailedCoordinatesToSimple(DetailedPoint2D detailedPoint2D) {
+        return new Point2D(detailedPoint2D.x / objectSize, detailedPoint2D.y / objectSize);
+    }
+
+    public DetailedPoint2D fromSimpleCoordinatesToDetailed(Point2D point) {
+        return new DetailedPoint2D(point.x * objectSize, point.y * objectSize);
     }
 
     private Point2D getNewPosition(DetailedPoint2D newCoordinates, MoveRules rule) {
@@ -297,21 +338,25 @@ public class GameModel {
         return newPosition;
     }
 
+    public byte[] getLevelData() {
+        return currentLevel.getLevelData();
+    }
+
     private char getCellType(Point2D point) {
-        GameLevel currentLvl = getCurrentLevel();
+        GameLevel currentLvl = currentLevel;
         byte level[] = currentLvl.getLevelData();
-        return (char)level[point.y * getCurrentLevel().getWidth() + point.x];
+        return (char)level[point.y * currentLevel.getWidth() + point.x];
     }
 
     private void setCellType(Point2D point, char newValue) {
-        GameLevel currentLvl = getCurrentLevel();
+        GameLevel currentLvl = currentLevel;
         byte level[] = currentLvl.getLevelData();
-        level[point.y * getCurrentLevel().getWidth() + point.x] = (byte)newValue;
+        level[point.y * currentLevel.getWidth() + point.x] = (byte)newValue;
     }
 
     /* TODO: Rewrite this method! */
     private boolean isBorderSafety(DetailedPoint2D point) {
-        if ((point.x < (getCurrentLevel().getWidth() * 10) && point.x >= 0) && (point.y < (getCurrentLevel().getHeight() * 10) && point.y >= 0))
+        if ((point.x < (currentLevel.getWidth() * 10) && point.x >= 0) && (point.y < (currentLevel.getHeight() * 10) && point.y >= 0))
             return true;
 
         return false;
@@ -388,7 +433,7 @@ public class GameModel {
                 case GameLevel.SIMPLEDOT:
                     dotsCounter++;
                     updateScore(SIMPLEDOT_BONUS);
-                    //resources.handleSoundEvent("simpledot");
+                    resources.handleSoundEvent("simpledot");
                     setCellType(newPosition, GameLevel.ROAD);
                     break;
                 case GameLevel.SUPERDOT:
@@ -400,13 +445,13 @@ public class GameModel {
             }
 
             if (!afterTeleport) {
-                Pair<Boolean, Point2D> teleport = isTeleportationPoint(newPosition);
+                TeleportationStatus teleport = isTeleportationPoint(newPosition);
 
-                if (teleport.getKey().booleanValue()) {
-                    Point2D newPositionAfterTeleport = teleport.getValue();
-                    Orientation newPacmanOrientation = detectOrientationByTeleportExit(newPositionAfterTeleport);
+                if (teleport.getTeleportationState()) {
+                    DetailedPoint2D newPositionAfterTeleport = teleport.getTeleportationCoords();
+                    Orientation newPacmanOrientation = detectOrientationByTeleportExit(fromDetailedCoordinatesToSimple(newPositionAfterTeleport));
                     afterTeleport = true;
-                    handleMovementAction(getDetailedPoint2D(newPositionAfterTeleport),
+                    handleMovementAction(newPositionAfterTeleport,
                                          getRuleByOrientation(newPacmanOrientation));
                     changePacmanOrientation(newPacmanOrientation);
                     return;
@@ -424,8 +469,8 @@ public class GameModel {
     private Orientation detectOrientationByTeleportExit(Point2D newPositionAfterTeleport) {
         int x = newPositionAfterTeleport.x;
         int y = newPositionAfterTeleport.y;
-        int fieldWidth = resources.getCurrentLevel().getWidth();
-        int fieldHeight = resources.getCurrentLevel().getHeight();
+        int fieldWidth = currentLevel.getWidth();
+        int fieldHeight = currentLevel.getHeight();
 
         if (y == (fieldHeight - 1))
             return Orientation.UP;

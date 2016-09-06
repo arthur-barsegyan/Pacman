@@ -1,7 +1,9 @@
 package ru.pacman.model;
 
-import javafx.util.Pair;
+import ru.pacman.model.audiofx.AudioFXInitException;
+import ru.pacman.model.audiofx.PacmanAudioFX;
 import ru.pacman.model.gamelevel.GameLevel;
+import ru.pacman.model.gamelevel.LevelErrorLoadingException;
 import ru.pacman.model.gamelevel.LevelFileFormatException;
 
 import java.io.IOException;
@@ -15,30 +17,33 @@ class PacmanResourceManager {
     private GameLevel currentLevel;
     private PacmanAudioFX gameFX;
 
-    public PacmanResourceManager(String levelNameList) {
+    public PacmanResourceManager(String levelNameList) throws LevelFileFormatException {
         try {
             gameLevels = Files.readAllLines(Paths.get(levelNameList));
             gameFX = new PacmanAudioFX();
         } catch (IOException err) {
-
-        } catch (Throwable err) {
-            /* If AudioFX system isn't be a initialization */
+            throw new LevelFileFormatException("List of game levels can't be read");
+        } catch (AudioFXInitException err) {
+            System.out.println(err.getMessage());
         }
     }
 
-    public boolean loadNextLevel() throws LevelFileFormatException {
-        if (gameLevels.size() >= (levelNumber + 1)) {
-            currentLevel = new GameLevel(gameLevels.get(levelNumber));
-            levelNumber++;
-            return true;
-        } else
-            return false;
-    }
-
     public void handleSoundEvent(String event) { gameFX.handleEvent(event); }
-    GameLevel getCurrentLevel() { return currentLevel; }
-    List<DetailedPoint2D> getSpecialIntersectionsList() { return currentLevel.getSpecialIntersectionsList(); }
-    public List<Pair<Point2D,Point2D>> getTeleportationPoints() {
-        return currentLevel.getTeleportationPoints();
+
+    public GameLevel loadNextLevel() throws LevelFileFormatException, LevelErrorLoadingException {
+        /* If we have some levels yet */
+        if (gameLevels.size() >= (levelNumber + 1)) {
+            try {
+                currentLevel = new GameLevel(gameLevels.get(levelNumber));
+                levelNumber++;
+            } catch (LevelErrorLoadingException err) {
+                /* We support the state in its class in the correct form */
+                currentLevel = null;
+                throw err;
+            }
+        } else
+            currentLevel = null;
+
+        return currentLevel;
     }
 }

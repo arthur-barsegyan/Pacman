@@ -17,6 +17,7 @@ public class Clyde extends GhostAI {
     private boolean blockAxisX = false;
     private boolean blockAxisY = false;
     private boolean usingTeleport = false;
+    private boolean insideTheHotel = true;
 
     public Clyde(GameModel _model) {
         model = _model;
@@ -45,23 +46,18 @@ public class Clyde extends GhostAI {
         return previousPosition;
     }
 
-    /* TODO: Recheck this method */
+    /* TODO: Recheck Clyde behavior*/
     @Override
     public DetailedPoint2D getTargetTile() {
         DetailedPoint2D pacmanPosition = model.getCharacterCoords("Pacman");
-        GameModel.Orientation pacmanOrientation = model.getPacmanOrientation();
-        DetailedPoint2D target = new DetailedPoint2D(0, 0);
-
         double lengthToPacman = Math.sqrt((Math.pow(pacmanPosition.x - currentPosition.x, 2) +
                 Math.pow(pacmanPosition.y - currentPosition.y, 2)));
 
         if (lengthToPacman > 8) {
             return pacmanPosition;
-        } else {
-            target.x = -5;
-            target.y = (GameLevel.objectsOnYAxis + 5) * 10;
-            return target;
-        }
+        } else
+            // Same tile as his fixed one in Scatter mode, just outside the bottom-left corner of the maze
+            return new DetailedPoint2D(0, model.getHeight() + 5);
     }
 
     @Override
@@ -102,6 +98,16 @@ public class Clyde extends GhostAI {
     @Override
     protected boolean afterTeleport() {
         return usingTeleport;
+    }
+
+    @Override
+    protected void setHotelOutState(boolean state) {
+        insideTheHotel = !state;
+    }
+
+    @Override
+    protected boolean isInsideTheHotel() {
+        return insideTheHotel;
     }
 
     @Override

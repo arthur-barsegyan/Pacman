@@ -41,8 +41,8 @@ teleportation_points:
 (18, 10) (0, 10) #
 
 ghost_hotel:
-inside = (10, 11)
-outside = (10, 9)
+inside = (9, 9)
+outside = (9, 8)
 
 wall_color:
 0 0 255

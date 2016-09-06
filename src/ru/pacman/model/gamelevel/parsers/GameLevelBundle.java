@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 
 public class GameLevelBundle {
+    public int width;
+    public int height;
     public byte level[];
     public java.util.List<Point2D> superDotsCoordinates;
     public Map<String, DetailedPoint2D> heroCoordinates;
     public List<Pair<Point2D, Point2D>> teleportPointsCoordinates;
     public java.util.List<DetailedPoint2D> nonIntersectionCoordinates;
-    public int width;
-    public int height;
+    public DetailedPoint2D ghostHotelEnter;
+    public DetailedPoint2D ghostHotelExit;
 }
