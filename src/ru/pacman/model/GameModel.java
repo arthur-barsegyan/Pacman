@@ -1,6 +1,6 @@
 package ru.pacman.model;
 
-import javafx.util.Pair;
+import ru.pacman.model.Pair;
 import ru.pacman.model.ai.*;
 import ru.pacman.model.gamelevel.GameLevel;
 import ru.pacman.model.gamelevel.LevelErrorLoadingException;

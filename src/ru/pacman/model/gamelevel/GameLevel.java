@@ -1,6 +1,6 @@
 package ru.pacman.model.gamelevel;
 
-import javafx.util.Pair;
+import ru.pacman.model.Pair;
 import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.parsers.GameLevelBundle;

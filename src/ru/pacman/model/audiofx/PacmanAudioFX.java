@@ -3,7 +3,6 @@ package ru.pacman.model.audiofx;
 import java.io.*;
 import java.util.*;
 
-import com.sun.org.apache.bcel.internal.util.ClassLoader;
 import ru.pacman.model.audiofx.AudioFXInitException;
 
 import javax.sound.sampled.*;
@@ -13,7 +12,7 @@ import javax.sound.sampled.*;
 public class PacmanAudioFX {
     private Map<String, Clip> eventSoundMatcher = new TreeMap<>();
     private Properties propertiesReader = new Properties();
-    private ClassLoader propertiesLoader = new ClassLoader();
+    private ClassLoader propertiesLoader = PacmanAudioFX.class.getClassLoader();
     private Queue<String> events = new LinkedList<>();
     private Clip mainSound = null;
     private volatile MainSoundState isMainSoundActive = new MainSoundState();
