@@ -8,6 +8,7 @@ import ru.pacman.model.gamelevel.LevelFileFormatException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.awt.Rectangle;
 
 import static ru.pacman.model.GameModel.MoveRules.LeftUpRule;
 import static ru.pacman.model.GameModel.MoveRules.RightDownRule;
@@ -248,8 +249,14 @@ public class GameModel {
     }
 
     public void checkGhostsAttack() {
+        int delta = objectSize / 2;
+        Rectangle pacmanRect = new Rectangle(pacmanCoords.x - delta, pacmanCoords.y - delta,
+                                              objectSize, objectSize);
         for (String currentGhost : ghostsNames) {
-            if (pacmanCoords.equals(getCharacterCoords(currentGhost))) {
+            DetailedPoint2D point = getCharacterCoords(currentGhost);
+            Rectangle ghostRect = new Rectangle(point.x - delta, point.y - delta,
+                                                objectSize, objectSize);
+            if (ghostRect.intersects(pacmanRect)) {
                 ghostAttack = true;
                 gameOver();
                 return;
@@ -488,8 +495,9 @@ public class GameModel {
 
     private void gameOver() {
         if (ghostAttack) {
-            //resources.handleSoundEvent("gameover");
-        } else
+            gameOver = true;
+            resources.handleSoundEvent("gameover");
+        } else {
             System.out.println("You winner!");
     }
 
