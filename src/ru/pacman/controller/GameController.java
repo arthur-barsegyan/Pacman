@@ -6,40 +6,72 @@ import ru.pacman.model.Point2D;
 import ru.pacman.model.gamelevel.GameLevel;
 import ru.pacman.ui.PacmanGameView;
 
+import java.lang.reflect.InvocationTargetException;
 import javax.swing.*;
+import javax.swing.SwingUtilities;
 import javax.tools.JavaCompiler;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
-public class GameController implements PacmanGameController {
-    GameModel model;
-    ArrayList<PacmanGameView> views = new ArrayList<>();
+public class GameController implements PacmanGameController, Observer {
+    private GameModel model;
+    private PacmanGameView view;
+    private Thread controllerThread;
 
     public GameController(GameModel _model) {
         model = _model;
     }
 
     public void gameStart() {
-        model.gameStart();
-        for (PacmanGameView view : views) {
-            view.getKeyListener(new MoveTracker(model, view));
-            Timer pacmanTimer = new Timer(100, (ActionEvent event) -> {
+        model.gameStart(this);
+        view.getKeyListener(new MoveTracker(model, view));
+
+        controllerThread = new Thread(() -> {
+            while (!controllerThread.isInterrupted()) {
+                try {
                     model.newMovementAction();
-                    view.updateCoords();
-            });
+                    model.updateGhostsPosition();
 
-            Timer ghostTimer = new Timer(50, (ActionEvent event) -> {
-                model.updateGhostsPosition();
-                view.updateGhostsPosition();
-            });
+                    if (controllerThread.isInterrupted()) {
+                        System.exit(0);
+                    }
 
-            while (!model.isLevelOver() && !model.isGameOver()) {
-                pacmanTimer.start();
-                ghostTimer.start();
+                    SwingUtilities.invokeLater(() -> {
+                        view.updateCoords();
+                        view.updateGhostsPosition();
+                    });
+
+                    Thread.currentThread().sleep(100);
+                } catch (InterruptedException e) {
+                    // System.out.println("Game was ended -> kill controller thread...");
+                    System.exit(0);
+                }
             }
+        });
 
-            view.gameOver();
-        }
+        controllerThread.start();
+    }
+
+    public void update(Observable o, Object arg) {
+        String event = (String) arg;
+        try {
+            switch (event) {
+                case "gameover": {
+                    model.gameEnd();
+                    SwingUtilities.invokeAndWait(() -> {
+                        view.gameOver();
+                    });
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+                default:
+                    return;
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (InvocationTargetException e) {}
     }
 
     @Override
@@ -60,7 +92,7 @@ public class GameController implements PacmanGameController {
         return model.getLevelData();
     }
 
-    public void addView(PacmanGameView _view) { views.add(_view); }
+    public void addView(PacmanGameView _view) { view = _view; }
 
     /* This tracker will speak to model about Pacman actions,
        and model will analyse this data. */

@@ -8,12 +8,14 @@ import ru.pacman.model.gamelevel.LevelFileFormatException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Observer;
+import java.util.Observable;
 import java.awt.Rectangle;
 
 import static ru.pacman.model.GameModel.MoveRules.LeftUpRule;
 import static ru.pacman.model.GameModel.MoveRules.RightDownRule;
 
-public class GameModel {
+public class GameModel extends Observable {
     private final String invalidLevelMessage = "Game can't loading level.\n" +
                                                "Please check your \"PacmanLevelList.txt\" file and try again!";
     private PacmanResourceManager resources;
@@ -105,7 +107,8 @@ public class GameModel {
 
     /* We create special method for starting game. After thar we independent about
        View and Controller */
-    public void gameStart() {
+    public void gameStart(Observer observer) {
+        addObserver(observer);
         resources.handleSoundEvent("gamestart");
         //resources.handleSoundEvent("chasemode");
     }
@@ -494,10 +497,12 @@ public class GameModel {
     }
 
     private void gameOver() {
+        setChanged();
         if (ghostAttack) {
             gameOver = true;
-            resources.handleSoundEvent("gameover");
+            notifyObservers("gameover");
         } else {
+            notifyObservers("levelpass");
             System.out.println("You winner!");
     }
 
