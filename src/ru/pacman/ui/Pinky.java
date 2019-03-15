@@ -35,7 +35,7 @@ class Pinky extends JComponent implements Ghost {
 
     @Override
     public void updatePosition(DetailedPoint2D position) {
-        x = position.x * 2;
-        y = position.y * 2;
+        x = position.x * PacmanField.objectSize / 10;
+        y = position.y * PacmanField.objectSize / 10;
     }
 }

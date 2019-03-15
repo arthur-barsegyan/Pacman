@@ -43,7 +43,6 @@ public class GraphicUI extends JFrame implements PacmanGameView {
     @Override
     public void gameOver() {
         System.out.println("Game Over");
-        System.exit(0);
     }
 
     void drawScore(/**/) {

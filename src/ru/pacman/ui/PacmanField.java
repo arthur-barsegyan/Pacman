@@ -13,7 +13,7 @@ public class PacmanField extends JComponent {
     private PacmanGameController controller;
     private ArrayList<PacmanLevelObject> objectList;
     private ArrayList<Ghost> ghostsList;
-    public final static int objectSize = 20;
+    public final static int objectSize = 30;
     private Pacman pacman;
     byte level[];
 

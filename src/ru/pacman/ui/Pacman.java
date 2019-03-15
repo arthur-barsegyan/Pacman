@@ -31,8 +31,8 @@ public class Pacman extends JComponent implements PacmanLevelObject {
     }
 
     public void updateCoords(DetailedPoint2D coords) {
-        x = coords.x * 2;
-        y = coords.y * 2;
+        x = coords.x * PacmanField.objectSize / 10;
+        y = coords.y * PacmanField.objectSize / 10;
     }
 
     public void updateOrientation(GameModel.Orientation _orientation) {
