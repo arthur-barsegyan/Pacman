@@ -7,11 +7,12 @@ import ru.pacman.model.audiofx.AudioFXInitException;
 
 import javax.sound.sampled.*;
 
-/* We can have one permanently sound and some temp sound which should playing
-   with main theme (or instead) */
+/* We can have one permanently sound and some short clips which should playing
+   with main theme (or instead)
+
+   Main sound - repeats until it was canceled */
 public class PacmanAudioFX {
     private Map<String, Clip> eventSoundMatcher = new TreeMap<>();
-    private Properties propertiesReader = new Properties();
     private ClassLoader propertiesLoader = PacmanAudioFX.class.getClassLoader();
     private Queue<String> events = new LinkedList<>();
     private Clip mainSound = null;
@@ -33,7 +34,7 @@ public class PacmanAudioFX {
                     try {
                         events.wait();
                     } catch (InterruptedException err) {
-                        break;
+                        return;
                     }
                 }
 
@@ -45,7 +46,7 @@ public class PacmanAudioFX {
                 eventSound.setFramePosition(0);
                 eventSound.start();
                 /* TODO: When I waiting end of my sound via "handleUnterruptedEvent()" I lost sound after teleport */
-                //handleUninterruptedEvent(eventSound);
+                handleUninterruptedEvent(eventSound);
             } catch (Throwable e) {
                 e.printStackTrace();
             }
@@ -60,7 +61,7 @@ public class PacmanAudioFX {
                     try {
                         isMainSoundActive.wait();
                     } catch (InterruptedException err) {
-                        break;
+                        return;
                     }
                 }
             }
@@ -80,13 +81,8 @@ public class PacmanAudioFX {
     }
 
     public PacmanAudioFX() throws AudioFXInitException {
-        InputStream fileStream = propertiesLoader.getResourceAsStream("PacmanSFXProperties.txt");
-
-        if (fileStream == null) {
-            throw new RuntimeException("Can't open SFX properties file!");
-        }
-
-        try {
+        try (InputStream fileStream = propertiesLoader.getResourceAsStream("PacmanSFXProperties.txt")) {
+            Properties propertiesReader = new Properties();
             propertiesReader.load(fileStream);
             Set<String> tracks = propertiesReader.stringPropertyNames();
 
@@ -101,15 +97,10 @@ public class PacmanAudioFX {
                 eventSoundMatcher.put(track, player);
             }
 
-            primarySoundThread.start();
+            // primarySoundThread.start();
             secondarySoundThread.start();
         } catch (Throwable err) {
-            throw new AudioFXInitException("AudioFX system isn't initialized");
-        } finally {
-            try {
-                if (fileStream != null)
-                    fileStream.close();
-            } catch (IOException e) {}
+            throw new AudioFXInitException("AudioFX system isn't initialized! Reason: " + err);
         }
     }
 
@@ -121,12 +112,11 @@ public class PacmanAudioFX {
     public void handleEvent(String event) {
         try {
             Clip soundPlayer = eventSoundMatcher.get(event);
-            System.out.println("Get new player for event " + event);
             switch (event) {
                 case ("gamestart"):
                     handleUninterruptedEvent(soundPlayer);
                     break;
-                case ("gameend"):
+                case ("gameover"):
                     handleUninterruptedEvent(soundPlayer);
                     break;
                 case ("chasemode"):
@@ -165,9 +155,14 @@ public class PacmanAudioFX {
     }
 
     public void close() {
-        primarySoundThread.interrupt();
+        // primarySoundThread.interrupt();
         secondarySoundThread.interrupt();
-        /* TODO: Why join() throwing InterruptedException? */
-        //soundThread.join();
+
+        while (secondarySoundThread.isAlive()) {
+            try {
+                // primarySoundThread.join();
+                secondarySoundThread.join();
+            } catch (InterruptedException e) {}
+        }
     }
 }

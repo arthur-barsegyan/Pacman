@@ -46,4 +46,8 @@ class PacmanResourceManager {
 
         return currentLevel;
     }
+
+    public void close() {
+        gameFX.close();
+    }
 }

@@ -148,6 +148,10 @@ public class GameModel extends Observable {
     public void updateGhostsPosition() {
         for (GhostAI currentGhost : ghosts) {
             currentGhost.move();
+
+            if (isGameOver()) {
+                return;
+            }
         }
     }
 
@@ -504,6 +508,12 @@ public class GameModel extends Observable {
         } else {
             notifyObservers("levelpass");
             System.out.println("You winner!");
+        }
+    }
+
+    public void gameEnd() {
+        resources.handleSoundEvent("gameover");
+        resources.close();
     }
 
     private void updateScore(int newAchieve) {

@@ -1,3 +1,4 @@
 gamestart=resources/SFX/opening_song.wav
 simpledot_a=resources/SFX/simpledot_a.wav
 simpledot_b=resources/SFX/simpledot_b.wav
+gameover=resources/SFX/pacman_death.wav
