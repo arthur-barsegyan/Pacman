@@ -37,8 +37,8 @@ public class Clyde extends GhostAI {
 
     @Override
     void setCurrentPosition(int x, int y) {
-        currentPosition.x = x;
-        currentPosition.y = y;
+        currentPosition.setX(x);
+        currentPosition.setY(y);
     }
 
     @Override
@@ -50,8 +50,8 @@ public class Clyde extends GhostAI {
     @Override
     public DetailedPoint2D getTargetTile() {
         DetailedPoint2D pacmanPosition = model.getCharacterCoords("Pacman");
-        double lengthToPacman = Math.sqrt((Math.pow(pacmanPosition.x - currentPosition.x, 2) +
-                Math.pow(pacmanPosition.y - currentPosition.y, 2)));
+        double lengthToPacman = Math.sqrt((Math.pow(pacmanPosition.getX() - currentPosition.getX(), 2) +
+                Math.pow(pacmanPosition.getY() - currentPosition.getY(), 2)));
 
         if (lengthToPacman > 8) {
             return pacmanPosition;
@@ -86,8 +86,8 @@ public class Clyde extends GhostAI {
     }
 
     void setPreviousPosition() {
-        previousPosition.x = currentPosition.x;
-        previousPosition.y = currentPosition.y;
+        previousPosition.setX(currentPosition.getX());
+        previousPosition.setY(currentPosition.getY());
     }
 
     @Override

@@ -41,16 +41,16 @@ public class TeleportationPointsParser implements LevelParser {
 
                         if (i == teleportEntrance) {
                             if (firstCoord)
-                                currentEntrance.x = Integer.parseInt(currentToken);
+                                currentEntrance.getX() = Integer.parseInt(currentToken);
                             else {
-                                currentEntrance.y = Integer.parseInt(currentToken);
+                                currentEntrance.getY() = Integer.parseInt(currentToken);
                                 endOfPoint = true;
                             }
                         } else if (i == teleportExit) {
                             if (firstCoord)
-                                currentExit.x = Integer.parseInt(currentToken);
+                                currentExit.getX() = Integer.parseInt(currentToken);
                             else {
-                                currentExit.y = Integer.parseInt(currentToken);
+                                currentExit.getY() = Integer.parseInt(currentToken);
                                 tempCoordinates.add(new Pair<>(currentEntrance, currentExit));
                                 endOfPoint = true;
                                 currentEntrance = new Point2D();

@@ -110,6 +110,10 @@ public class PacmanAudioFX {
     }
 
     public void handleEvent(String event) {
+        if (!event.isEmpty()) {
+            return;
+        }
+        
         try {
             Clip soundPlayer = eventSoundMatcher.get(event);
             switch (event) {

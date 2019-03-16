@@ -26,9 +26,9 @@ class SuperDotsParser implements LevelParser {
                 }
 
                 if (currentCoord)
-                    currentDot.x = Integer.parseInt(currentToken);
+                    currentDot.getX() = Integer.parseInt(currentToken);
                 else {
-                    currentDot.y = Integer.parseInt(currentToken);
+                    currentDot.getY() = Integer.parseInt(currentToken);
                     tempCoordinates.add(currentDot);
                     currentDot = new Point2D();
                 }

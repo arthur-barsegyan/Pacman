@@ -35,10 +35,10 @@ class PositionsOnMapParser implements LevelParser {
 
             /* TODO: Remove hardcode constants */
             if (isFirstCoord) {
-                currentCoord.x  = Integer.parseInt(currentToken) * 10;
+                currentCoord.getX()  = Integer.parseInt(currentToken) * 10;
                 isFirstCoord = false;
             } else {
-                currentCoord.y = Integer.parseInt(currentToken) * 10;
+                currentCoord.getY() = Integer.parseInt(currentToken) * 10;
                 heroPosList.put(currentHero, currentCoord);
                 isFirstCoord = true;
                 currentHero = null;

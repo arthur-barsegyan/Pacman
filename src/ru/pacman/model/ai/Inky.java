@@ -35,8 +35,8 @@ public class Inky extends GhostAI {
 
     @Override
     void setCurrentPosition(int x, int y) {
-        currentPosition.x = x;
-        currentPosition.y = y;
+        currentPosition.getX() = x;
+        currentPosition.getY() = y;
     }
 
     @Override
@@ -53,34 +53,34 @@ public class Inky extends GhostAI {
         /* TODO: Remove hardcoded constants */
         switch (pacmanOrientation) {
             case UP:
-                target.setLocation(pacmanPosition.x, pacmanPosition.y - 20);
+                target.setLocation(pacmanPosition.getX(), pacmanPosition.getY() - 20);
                 break;
 
             case DOWN:
-                target.setLocation(pacmanPosition.x, pacmanPosition.y + 20);
+                target.setLocation(pacmanPosition.getX(), pacmanPosition.getY() + 20);
                 break;
 
             case LEFT:
-                target.setLocation(pacmanPosition.x - 20, pacmanPosition.y);
+                target.setLocation(pacmanPosition.getX() - 20, pacmanPosition.getY());
                 break;
 
             case RIGHT:
-                target.setLocation(pacmanPosition.x + 20, pacmanPosition.y);
+                target.setLocation(pacmanPosition.getX() + 20, pacmanPosition.getY());
                 break;
         }
 
         DetailedPoint2D blinkyPosition = model.getCharacterCoords("Blinky");
-        int absX = Math.abs(blinkyPosition.x - target.x);
-        int absY = Math.abs(blinkyPosition.y - target.y);
+        int absX = Math.abs(blinkyPosition.getX() - target.getX());
+        int absY = Math.abs(blinkyPosition.getY() - target.getY());
 
-        if (pacmanPosition.x > blinkyPosition.x && pacmanPosition.y < blinkyPosition.y) {
-            target.setLocation(pacmanPosition.x - 2 * absX, pacmanPosition.y - 2 * absY);
-        } else if (pacmanPosition.x < blinkyPosition.x && pacmanPosition.y > blinkyPosition.y) {
-            target.setLocation(pacmanPosition.x + 2 * absX, pacmanPosition.y - 2 * absY);
-        } else if (pacmanPosition.x < blinkyPosition.x && pacmanPosition.y < blinkyPosition.y) {
-            target.setLocation(pacmanPosition.x + 2 * absX, pacmanPosition.y + 2 * absY);
+        if (pacmanPosition.getX() > blinkyPosition.getX() && pacmanPosition.getY() < blinkyPosition.getY()) {
+            target.setLocation(pacmanPosition.getX() - 2 * absX, pacmanPosition.getY() - 2 * absY);
+        } else if (pacmanPosition.getX() < blinkyPosition.getX() && pacmanPosition.getY() > blinkyPosition.getY()) {
+            target.setLocation(pacmanPosition.getX() + 2 * absX, pacmanPosition.getY() - 2 * absY);
+        } else if (pacmanPosition.getX() < blinkyPosition.getX() && pacmanPosition.getY() < blinkyPosition.getY()) {
+            target.setLocation(pacmanPosition.getX() + 2 * absX, pacmanPosition.getY() + 2 * absY);
         } else {
-            target.setLocation(pacmanPosition.x, pacmanPosition.y + 20);
+            target.setLocation(pacmanPosition.getX(), pacmanPosition.getY() + 20);
         }
 
         return target;
@@ -112,8 +112,8 @@ public class Inky extends GhostAI {
     }
 
     void setPreviousPosition() {
-        previousPosition.x = currentPosition.x;
-        previousPosition.y = currentPosition.y;
+        previousPosition.getX() = currentPosition.getX();
+        previousPosition.getY() = currentPosition.getY();
     }
 
     @Override

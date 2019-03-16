@@ -29,9 +29,9 @@ public class NonIntersectionParser implements LevelParser  {
 
                 if (currentCoord)
                     //TODO: Create interface for getting this
-                    currentPos.x = Integer.parseInt(currentToken) * 10;
+                    currentPos.getX() = Integer.parseInt(currentToken) * 10;
                 else {
-                    currentPos.y = Integer.parseInt(currentToken) * 10;
+                    currentPos.getY() = Integer.parseInt(currentToken) * 10;
                     tempCoordinates.add(currentPos);
                     currentPos = new DetailedPoint2D();
                 }

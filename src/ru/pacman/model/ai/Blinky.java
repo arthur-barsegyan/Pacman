@@ -20,7 +20,7 @@ public class Blinky extends GhostAI {
     public Blinky(GameModel _model) {
         model = _model;
         currentPosition = model.getCharacterCoords("Blinky");
-        previousPosition = new DetailedPoint2D(currentPosition.x, currentPosition.y);
+        previousPosition = new DetailedPoint2D(currentPosition.getX(), currentPosition.getY());
     }
 
     @Override
@@ -33,16 +33,15 @@ public class Blinky extends GhostAI {
     }
 
     void setPreviousPosition() {
-        previousPosition.x = currentPosition.x;
-        previousPosition.y = currentPosition.y;
+        previousPosition.setX(currentPosition.getX());
+        previousPosition.setY(currentPosition.getY());
     }
 
     @Override
     void setCurrentPosition(int x, int y) {
-        currentPosition.x = x;
-        currentPosition.y = y;
+        currentPosition.setX(x);
+        currentPosition.setY(y);
     }
-
 
     @Override
     public DetailedPoint2D getTargetTile() {

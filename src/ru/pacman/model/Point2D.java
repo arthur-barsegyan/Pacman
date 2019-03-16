@@ -20,7 +20,7 @@ public class Point2D {
         if (!(secondPoint instanceof Point2D))
             return false;
 
-        if (((Point2D) secondPoint).x == x && ((Point2D) secondPoint).y == y)
+        if (((Point2D) secondPoint).getX() == x && ((Point2D) secondPoint).getY() == y)
             return true;
 
         return false;

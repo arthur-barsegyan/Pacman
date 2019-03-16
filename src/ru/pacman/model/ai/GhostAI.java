@@ -44,7 +44,7 @@ public abstract class GhostAI {
             if (teleport.getTeleportationState() && !afterTeleport()) {
                 DetailedPoint2D newPositionAfterTeleport = teleport.getTeleportationCoords();
                 setPreviousPosition();
-                setCurrentPosition(newPositionAfterTeleport.x, newPositionAfterTeleport.y);
+                setCurrentPosition(newPositionAfterTeleport.getX(), newPositionAfterTeleport.getY());
                 usingTeleport(true);
                 return true;
             } else
@@ -66,7 +66,7 @@ public abstract class GhostAI {
                     //if (!isLastMove(currentPatch)) { // todo: useless???1
                     checkAxisBlocking(currentPatch);
                     setPreviousPosition();
-                    setCurrentPosition(currentPatch.x, currentPatch.y);
+                    setCurrentPosition(currentPatch.getX(), currentPatch.getY());
                     return true;
                     //}
                 }
@@ -83,7 +83,7 @@ public abstract class GhostAI {
                     if (currentDirection.isPresent() && !isLastMove(currentDirection.get())) {
                         checkAxisBlocking(currentDirection.get());
                         setPreviousPosition();
-                        setCurrentPosition(currentDirection.get().x, currentDirection.get().y);
+                        setCurrentPosition(currentDirection.get().getX(), currentDirection.get().getY());
                         return true;
                     }
                 }
@@ -102,8 +102,8 @@ public abstract class GhostAI {
         int minLengthPos = -1;
 
         for (int i = 0; i < pathsList.size(); i++) {
-            pathLength[i] = Math.sqrt((Math.pow(pathsList.get(i).x - target.x, 2) +
-                    Math.pow(pathsList.get(i).y - target.y, 2)));
+            pathLength[i] = Math.sqrt((Math.pow(pathsList.get(i).getX() - target.getX(), 2) +
+                    Math.pow(pathsList.get(i).getY() - target.getY(), 2)));
         }
 
         for (int i = 0; i < pathLength.length; i++) {
@@ -122,7 +122,7 @@ public abstract class GhostAI {
         if (!equalsMins) {
             checkAxisBlocking(pathsList.get(minLengthPos));
             setPreviousPosition();
-            setCurrentPosition(pathsList.get(minLengthPos).x, pathsList.get(minLengthPos).y);
+            setCurrentPosition(pathsList.get(minLengthPos).getX(), pathsList.get(minLengthPos).getY());
             return true;
         }
 
@@ -136,7 +136,7 @@ public abstract class GhostAI {
             if (!isLastMove(currentDirection.get())) {
                 checkAxisBlocking(currentDirection.get());
                 setPreviousPosition();
-                setCurrentPosition(currentDirection.get().x, currentDirection.get().y);
+                setCurrentPosition(currentDirection.get().getX(), currentDirection.get().getY());
                 return true;
             }
         }
@@ -145,20 +145,20 @@ public abstract class GhostAI {
     }
 
     private void checkAxisBlocking(DetailedPoint2D position) {
-        if (getCurrentCoordinates().x != position.x)
+        if (getCurrentCoordinates().getX() != position.getX())
             setBlockingOnAxisX(true);
-        else if (getCurrentCoordinates().y != position.y)
+        else if (getCurrentCoordinates().getY() != position.getY())
             setBlockingOnAxisY(true);
 
-        if ((position.x % getGameModel().getObjectSize()) == 0)
+        if ((position.getX() % getGameModel().getObjectSize()) == 0)
             setBlockingOnAxisX(false);
 
-        if ((position.y % getGameModel().getObjectSize()) == 0)
+        if ((position.getY() % getGameModel().getObjectSize()) == 0)
             setBlockingOnAxisY(false);
     }
 
     private boolean isLastMove(DetailedPoint2D currentMove) {
-        if (currentMove.x != getPreviousPosition().x || currentMove.y != getPreviousPosition().y) {
+        if (currentMove.getX() != getPreviousPosition().getX() || currentMove.getY() != getPreviousPosition().getY()) {
             return false;
         }
 
@@ -179,33 +179,33 @@ public abstract class GhostAI {
     ArrayList<Comparator<DetailedPoint2D>> getCmp()  {
         ArrayList<Comparator<DetailedPoint2D>> cmp = new ArrayList<>();
         cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
-                if (o1.y < o2.y) {
+                if (o1.getY() < o2.getY()) {
                     return -1;
-                } else if (o2.y < o1.y)
+                } else if (o2.getY() < o1.getY())
                     return 1;
                 return 0;
         });
 
         cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
-                if (o1.x < o2.x) {
+                if (o1.getX() < o2.getX()) {
                     return -1;
-                } else if (o2.x < o1.x)
+                } else if (o2.getX() < o1.getX())
                     return 1;
                 return 0;
         });
 
         cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
-                if (o1.y > o2.y) {
+                if (o1.getY() > o2.getY()) {
                     return -1;
-                } else if (o2.y < o1.y)
+                } else if (o2.getY() < o1.getY())
                     return 1;
                 return 0;
         });
 
         cmp.add((DetailedPoint2D o1, DetailedPoint2D o2) -> {
-            if (o1.x > o2.x)
+            if (o1.getX() > o2.getX())
                 return -1;
-            else if (o2.x > o1.x)
+            else if (o2.getX() > o1.getX())
                 return 1;
 
             return 0;

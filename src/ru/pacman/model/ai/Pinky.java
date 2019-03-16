@@ -41,19 +41,19 @@ public class Pinky extends GhostAI {
         /* TODO: Remove hardcoded constants */
         switch (pacmanOrientation) {
             case UP:
-                target.setLocation(pacmanPosition.x, pacmanPosition.y - 40);
+                target.setLocation(pacmanPosition.getX(), pacmanPosition.getY() - 40);
                 break;
 
             case DOWN:
-                target.setLocation(pacmanPosition.x, pacmanPosition.y + 40);
+                target.setLocation(pacmanPosition.getX(), pacmanPosition.getY() + 40);
                 break;
 
             case LEFT:
-                target.setLocation(pacmanPosition.x - 40, pacmanPosition.y);
+                target.setLocation(pacmanPosition.getX() - 40, pacmanPosition.getY());
                 break;
 
             case RIGHT:
-                target.setLocation(pacmanPosition.x + 40, pacmanPosition.y);
+                target.setLocation(pacmanPosition.getX() + 40, pacmanPosition.getY());
                 break;
         }
 
@@ -62,8 +62,8 @@ public class Pinky extends GhostAI {
 
     @Override
     void setCurrentPosition(int x, int y) {
-        currentPosition.x = x;
-        currentPosition.y = y;
+        currentPosition.getX() = x;
+        currentPosition.getY() = y;
     }
 
     @Override
@@ -97,8 +97,8 @@ public class Pinky extends GhostAI {
     }
 
     void setPreviousPosition() {
-        previousPosition.x = currentPosition.x;
-        previousPosition.y = currentPosition.y;
+        previousPosition.getX() = currentPosition.getX();
+        previousPosition.getY() = currentPosition.getY();
     }
 
     @Override
