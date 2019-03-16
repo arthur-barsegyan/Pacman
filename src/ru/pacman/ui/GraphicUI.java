@@ -1,5 +1,6 @@
 package ru.pacman.ui;
 
+import ru.pacman.controller.LevelData;
 import ru.pacman.controller.PacmanGameController;
 import ru.pacman.model.gamelevel.GameLevel;
 import javax.swing.*;
@@ -19,6 +20,11 @@ public class GraphicUI extends JFrame implements PacmanGameView {
         /* TODO: Read about this bug (Why I should adding useless object on every dimension?) */
         setSize((GameLevel.objectsOnXAxis + 1) * PacmanField.objectSize, (GameLevel.objectsOnYAxis + 1  ) * PacmanField.objectSize);
         controller = _controller;
+        LevelData level = controller.getLevelData();
+        /* TODO: Read about this bug (Why I should adding useless object on every dimension?) */
+        windowSizeX = (level.width + 1) * PacmanField.objectSize;
+        windowSizeY = (level.height + 1) * PacmanField.objectSize;
+
         gameField = new PacmanField(controller);
         add(gameField);
 
@@ -35,12 +41,10 @@ public class GraphicUI extends JFrame implements PacmanGameView {
         gameField.updateCoords();
     }
 
-    @Override
     public void updateGhostsPosition() {
         gameField.updateGhostsPosition();
     }
 
-    @Override
     public void gameOver() {
         System.out.println("Game Over");
     }

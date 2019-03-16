@@ -7,7 +7,7 @@ import ru.pacman.model.gamelevel.GameLevel;
 import ru.pacman.ui.PacmanGameView;
 
 public interface PacmanGameController {
-    byte[] getLevelData();
+    LevelData getLevelData();
     void addView(PacmanGameView view);
     void gameStart();
     void getScore();

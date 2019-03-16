@@ -1,5 +1,6 @@
 package ru.pacman.ui;
 
+import ru.pacman.controller.LevelData;
 import ru.pacman.controller.PacmanGameController;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.gamelevel.GameLevel;
@@ -15,11 +16,11 @@ public class PacmanField extends JComponent {
     private ArrayList<Ghost> ghostsList;
     public final static int objectSize = 30;
     private Pacman pacman;
-    byte level[];
+    private LevelData levelData;
 
     PacmanField(PacmanGameController _controller) {
         controller = _controller;
-        level = controller.getLevelData();
+        levelData = controller.getLevelData();
         fieldInit();
         //setDoubleBuffered(true);
     }
@@ -37,9 +38,10 @@ public class PacmanField extends JComponent {
         ghostsList.add(new Inky(controller.getCharacterCoords("Inky")));
         add(pacman);
 
+        byte[] level = levelData.level;
         for (int i = 0; i < level.length; i++) {
-            int x = (i % GameLevel.objectsOnXAxis) * objectSize;
-            int y = (i / GameLevel.objectsOnXAxis) * objectSize;
+            int x = (i % levelData.width) * objectSize;
+            int y = (i / levelData.width) * objectSize;
 
             if ((char)level[i] == GameLevel.WALL)
                 objectList.add(new PacmanWall(x, y));
@@ -48,7 +50,7 @@ public class PacmanField extends JComponent {
             else if ((char)level[i] == GameLevel.SIMPLEDOT)
                 objectList.add(new Dot(x, y, false));
             else if ((char)level[i] == GameLevel.SUPERDOT)
-                objectList.add(new Dot(x,y, true));
+                objectList.add(new Dot(x, y, true));
         }
     }
 
@@ -57,7 +59,7 @@ public class PacmanField extends JComponent {
             PacmanLevelObject currentObject = objectList.get(i);
 
             if (currentObject instanceof Dot) {
-                if ((char)level[i] == GameLevel.ROAD) {
+                if ((char)levelData.level[i] == GameLevel.ROAD) {
                     ((Dot) currentObject).deactivate();
                 }
             }
@@ -81,10 +83,6 @@ public class PacmanField extends JComponent {
         for (Ghost currentGhost : ghostsList) {
             currentGhost.paint(g);
         }
-    }
-
-    public void drawScore() {
-
     }
 
     public void updateGhostsPosition() {

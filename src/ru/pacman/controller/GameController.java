@@ -1,5 +1,6 @@
 package ru.pacman.controller;
 
+import ru.pacman.controller.LevelData;
 import ru.pacman.model.DetailedPoint2D;
 import ru.pacman.model.GameModel;
 import ru.pacman.model.Point2D;
@@ -88,8 +89,9 @@ public class GameController implements PacmanGameController, Observer {
 
     }
 
-    public byte[] getLevelData() {
-        return model.getLevelData();
+    @Override
+    public LevelData getLevelData() {
+        return new LevelData(model.getLevelData(), model.getWidth(), model.getHeight());
     }
 
     public void addView(PacmanGameView _view) { view = _view; }
