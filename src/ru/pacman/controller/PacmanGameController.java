@@ -10,7 +10,7 @@ public interface PacmanGameController {
     LevelData getLevelData();
     void addView(PacmanGameView view);
     void gameStart();
-    void getScore();
+    int getScore();
     DetailedPoint2D getCharacterCoords(String characterName);
     GameModel.Orientation getPacmanOrientation();
 }

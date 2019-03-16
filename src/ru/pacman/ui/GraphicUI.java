@@ -5,20 +5,21 @@ import ru.pacman.controller.PacmanGameController;
 import ru.pacman.model.gamelevel.GameLevel;
 import javax.swing.*;
 import java.awt.event.KeyListener;
+import java.awt.*;
 
-/* Pacman GUI consists of game field, score table and special game bar */
+/* Pacman GUI consists of game field, score table */
 public class GraphicUI extends JFrame implements PacmanGameView {
     private PacmanGameController controller;
     private PacmanField gameField;
-    //private PacmanScore gameScore;
-    //private PacmanGameBar gameBar;
+    private PacmanScore gameScore;
+    private int windowSizeX;
+    private int windowSizeY;
 
     /* TODO: Turning on double buffering */
     public GraphicUI(PacmanGameController _controller) {
         super("Pacman");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
-        /* TODO: Read about this bug (Why I should adding useless object on every dimension?) */
-        setSize((GameLevel.objectsOnXAxis + 1) * PacmanField.objectSize, (GameLevel.objectsOnYAxis + 1  ) * PacmanField.objectSize);
+
         controller = _controller;
         LevelData level = controller.getLevelData();
         /* TODO: Read about this bug (Why I should adding useless object on every dimension?) */
@@ -26,16 +27,35 @@ public class GraphicUI extends JFrame implements PacmanGameView {
         windowSizeY = (level.height + 1) * PacmanField.objectSize;
 
         gameField = new PacmanField(controller);
-        add(gameField);
+        gameScore = new PacmanScore(controller, 
+                                    0, 
+                                    0,
+                                    (int)(windowSizeX * 0.25),
+                                    windowSizeY);
 
-        /* TODO: Frame also need special area for score and game context */
-        // ??? Frame creating doesn't finished
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+        panel.add(gameField, "West");
+        panel.add(gameScore, "East");
+
+        windowSizeX *= 1.25; // Game score area
+        add(panel);
+
+        setSize(windowSizeX, windowSizeY);
+        // Sets the location of the window relative to center of the screen
+        setLocationRelativeTo(null); 
+        setResizable(false);
         setVisible(true);
     }
 
     public void getKeyListener(KeyListener handler) {
         addKeyListener(handler);
     }
+
+    // @Override
+    // public Dimension getMaximumSize() {
+    //     return new Dimension(windowSizeX, windowSizeY);
+    // }
 
     public void updateCoords() {
         gameField.updateCoords();
@@ -49,7 +69,7 @@ public class GraphicUI extends JFrame implements PacmanGameView {
         System.out.println("Game Over");
     }
 
-    void drawScore(/**/) {
-
+    public void updateGameScore() {
+        gameScore.updateScore();
     }
 }

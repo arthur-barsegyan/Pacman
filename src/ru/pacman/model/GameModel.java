@@ -113,6 +113,10 @@ public class GameModel extends Observable {
         //resources.handleSoundEvent("chasemode");
     }
 
+    public int getGameScore() {
+        return gameScore;
+    }
+
     public void newMovementAction() {
         int x = pacmanCoords.x;
         int y = pacmanCoords.y;

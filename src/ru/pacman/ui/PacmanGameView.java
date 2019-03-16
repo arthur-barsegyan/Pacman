@@ -7,6 +7,7 @@ import java.awt.event.KeyListener;
 public interface PacmanGameView  {
     void getKeyListener(KeyListener handler);
     void updateCoords();
+    void updateGameScore();
     void updateGhostsPosition();
     void gameOver();
 }

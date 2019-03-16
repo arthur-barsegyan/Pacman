@@ -74,6 +74,11 @@ public class PacmanField extends JComponent {
     }
 
     @Override
+    public Dimension getPreferredSize() {
+        return new Dimension((levelData.width + 1) * objectSize, (levelData.height + 1) * objectSize);
+    }
+
+    @Override
     public void paintComponent(Graphics g) {
         for (int currentPos = 0; currentPos < objectList.size(); currentPos++) {
             objectList.get(currentPos).paint(g);

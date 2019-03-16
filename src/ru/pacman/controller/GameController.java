@@ -42,6 +42,7 @@ public class GameController implements PacmanGameController, Observer {
                     SwingUtilities.invokeLater(() -> {
                         view.updateCoords();
                         view.updateGhostsPosition();
+                        view.updateGameScore();
                     });
 
                     Thread.currentThread().sleep(100);
@@ -85,8 +86,9 @@ public class GameController implements PacmanGameController, Observer {
         return model.getPacmanOrientation();
     }
 
-    public void getScore() {
-
+    @Override
+    public int getScore() {
+        return model.getGameScore();
     }
 
     @Override
